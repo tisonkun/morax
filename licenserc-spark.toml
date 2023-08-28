@@ -12,31 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# The pull request's title should be fulfilled the following pattern:
-#
-#     <type>[optional scope]: <description>
-#
-# ... where valid types and scopes can be found below; for example:
-#
-#     fix(test): flaky test V1_ProxyAuthenticationTest.anonymousSocketTest
-#
-# More about configurations on https://github.com/Ezard/semantic-prs#configuration
+headerPath = "Apache-2.0-ASF.txt"
 
-enabled: true
-
-titleOnly: true
-
-types:
-  - feat
-  - fix
-  - docs
-  - style
-  - refactor
-  - perf
-  - test
-  - build
-  - ci
-  - chore
-  - revert
-
-targetUrl: https://github.com/tisonkun/nymph/blob/master/.github/semantic.yml
+includes = [
+    # These files is drived from Apache Spark's RPC modules.
+    "nymph-rpc/src/main/java/org/tisonkun/nymph/rpc/**",
+]
