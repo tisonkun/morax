@@ -41,16 +41,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
 
 /**
- * General utilities available in the network package. Many of these are sourced from Spark's
- * own Utils, just accessible within this package.
+ * General utilities available in the network package.
  */
 @Slf4j
 @UtilityClass
 public class JavaUtils {
 
     /**
-     * Define a default value for driver memory here since this value is referenced across the code
-     * base and nearly all files already use Utils.scala
+     * Define a default value for driver memory here.
      */
     public static final long DEFAULT_DRIVER_MEM_MB = 1024;
 
@@ -67,9 +65,6 @@ public class JavaUtils {
         }
     }
 
-    /**
-     * Returns a hash consistent with Spark's Utils.nonNegativeHash().
-     */
     public static int nonNegativeHash(Object obj) {
         if (obj == null) {
             return 0;
@@ -390,7 +385,7 @@ public class JavaUtils {
      * The directory is guaranteed to be newly created, and is not marked for automatic deletion.
      */
     public static File createDirectory(String root) throws IOException {
-        return createDirectory(root, "spark");
+        return createDirectory(root, "nymph");
     }
 
     /**
@@ -398,7 +393,7 @@ public class JavaUtils {
      * newly created, and is not marked for automatic deletion.
      */
     public static File createDirectory(String root, String namePrefix) throws IOException {
-        if (namePrefix == null) namePrefix = "spark";
+        if (namePrefix == null) namePrefix = "nymph";
         int attempts = 0;
         int maxAttempts = 10;
         File dir = null;

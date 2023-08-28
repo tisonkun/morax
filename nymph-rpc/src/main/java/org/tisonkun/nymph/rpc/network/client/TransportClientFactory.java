@@ -125,7 +125,7 @@ public class TransportClientFactory implements Closeable {
     /**
      * Create a {@link TransportClient} connecting to the given remote host / port.
      * <p>
-     * We maintain an array of clients (size determined by spark.shuffle.io.numConnectionsPerPeer)
+     * We maintain an array of clients (size determined by nymph.shuffle.io.numConnectionsPerPeer)
      * and randomly picks one to use. If no client was previously created in the randomly selected
      * spot, this function creates a new client and places it there.
      * <p>
@@ -149,7 +149,7 @@ public class TransportClientFactory implements Closeable {
             throws IOException, InterruptedException {
         // Get connection from the connection pool first.
         // If it is not found or not active, create a new one.
-        // Use unresolved address here to avoid DNS resolution each time we creates a client.
+        // Use unresolved address here to avoid DNS resolution each time we create a client.
         final InetSocketAddress unresolvedAddress = InetSocketAddress.createUnresolved(remoteHost, remotePort);
 
         // Create the ClientPool if we don't have it yet.
