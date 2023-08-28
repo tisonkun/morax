@@ -54,6 +54,7 @@
         <module>nymph-bom</module>
         <module>nymph-parent</module>
         <module>nymph-bookie</module>
+        <module>nymph-proto</module>
         <module>nymph-rpc</module>
     </modules>
 
