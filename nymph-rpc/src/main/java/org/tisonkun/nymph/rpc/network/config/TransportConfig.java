@@ -105,9 +105,9 @@ public class TransportConfig {
     /** Connection idle timeout in milliseconds. Default 120 secs. */
     public int connectionTimeoutMs() {
         long defaultNetworkTimeoutS = JavaUtils.timeStringAsSec(conf.get("nymph.network.timeout", "120s"));
-        long defaultTimeoutMs = JavaUtils.timeStringAsSec(
-                        conf.get(networkIoConnectionTimeoutConfigKey, defaultNetworkTimeoutS + "s"))
-                * 1000;
+        long defaultTimeoutMs =
+                JavaUtils.timeStringAsSec(conf.get(networkIoConnectionTimeoutConfigKey, defaultNetworkTimeoutS + "s"))
+                        * 1000;
         return defaultTimeoutMs < 0 ? 0 : (int) defaultTimeoutMs;
     }
 

@@ -24,11 +24,8 @@ public class ThrowableUtils {
      * @param typeToStrip type to strip
      * @return Unpacked cause or given Throwable if not packed
      */
-    public static Throwable stripException(
-            Throwable throwableToStrip,
-            Class<? extends Throwable> typeToStrip) {
-        while (typeToStrip.isAssignableFrom(throwableToStrip.getClass())
-                && throwableToStrip.getCause() != null) {
+    public static Throwable stripException(Throwable throwableToStrip, Class<? extends Throwable> typeToStrip) {
+        while (typeToStrip.isAssignableFrom(throwableToStrip.getClass()) && throwableToStrip.getCause() != null) {
             throwableToStrip = throwableToStrip.getCause();
         }
         return throwableToStrip;

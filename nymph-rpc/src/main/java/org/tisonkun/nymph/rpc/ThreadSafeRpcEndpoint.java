@@ -11,5 +11,4 @@ package org.tisonkun.nymph.rpc;
  * However, there is no guarantee that the same thread will be executing the same
  * [[ThreadSafeRpcEndpoint]] for different messages.
  */
-public interface ThreadSafeRpcEndpoint extends RpcEndpoint {
-}
+public interface ThreadSafeRpcEndpoint extends RpcEndpoint {}
