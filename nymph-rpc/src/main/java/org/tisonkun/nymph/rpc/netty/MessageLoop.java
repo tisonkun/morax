@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tisonkun.nymph.util.ThrowableUtils;
 
-public sealed abstract class MessageLoop permits DedicatedMessageLoop, SharedMessageLoop {
+public abstract sealed class MessageLoop permits DedicatedMessageLoop, SharedMessageLoop {
     /**
      * A poison inbox that indicates the message loop should stop processing messages.
      */

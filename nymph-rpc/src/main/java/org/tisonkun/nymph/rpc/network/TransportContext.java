@@ -28,7 +28,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import java.io.Closeable;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -144,7 +144,7 @@ public class TransportContext implements Closeable {
     }
 
     public TransportClientFactory createClientFactory() {
-        return createClientFactory(new ArrayList<>());
+        return createClientFactory(Collections.emptyList());
     }
 
     /**
@@ -168,8 +168,12 @@ public class TransportContext implements Closeable {
         return createServer(0, bootstraps);
     }
 
+    public TransportServer createServer(String host, int port) {
+        return new TransportServer(this, host, port, rpcHandler, Collections.emptyList());
+    }
+
     public TransportServer createServer() {
-        return createServer(0, new ArrayList<>());
+        return createServer(0, Collections.emptyList());
     }
 
     public TransportChannelHandler initializePipeline(SocketChannel channel) {

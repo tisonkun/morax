@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import java.util.LinkedList;
 import java.util.concurrent.Future;
 import javax.annotation.concurrent.GuardedBy;
+import lombok.Getter;
 import org.tisonkun.nymph.exception.NymphException;
 import org.tisonkun.nymph.rpc.RpcAddress;
 import org.tisonkun.nymph.rpc.network.client.TransportClient;
@@ -35,6 +36,8 @@ public class Outbox {
     private boolean draining = false;
 
     private final NettyRpcEnv nettyRpcEnv;
+
+    @Getter
     private final RpcAddress address;
 
     public Outbox(NettyRpcEnv nettyRpcEnv, RpcAddress address) {

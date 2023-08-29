@@ -3,7 +3,6 @@ package org.tisonkun.nymph.rpc.netty;
 import com.google.common.base.Preconditions;
 import java.util.LinkedList;
 import javax.annotation.concurrent.GuardedBy;
-import lombok.Lombok;
 import lombok.extern.slf4j.Slf4j;
 import org.tisonkun.nymph.exception.NymphException;
 import org.tisonkun.nymph.rpc.RpcEndpoint;
@@ -72,7 +71,8 @@ public class Inbox {
                 if (message instanceof InboxMessage.Rpc m) {
                     try {
                         if (!endpoint.receiveAndReply(m.content(), m.context())) {
-                            throw new NymphException("Unsupported message %s from %s".formatted(message, m.remoteAddress()));
+                            throw new NymphException(
+                                    "Unsupported message %s from %s".formatted(message, m.remoteAddress()));
                         }
                     } catch (Throwable t) {
                         m.context().sendFailure(t);
@@ -82,7 +82,8 @@ public class Inbox {
                     }
                 } else if (message instanceof InboxMessage.OneWay m) {
                     if (!endpoint.receive(m.content())) {
-                        throw new NymphException("Unsupported message %s from %s".formatted(message, m.remoteAddress()));
+                        throw new NymphException(
+                                "Unsupported message %s from %s".formatted(message, m.remoteAddress()));
                     }
                 } else if (message instanceof InboxMessage.OnStart) {
                     endpoint.onStart();
@@ -95,7 +96,10 @@ public class Inbox {
                     }
                 } else if (message instanceof InboxMessage.OnStop) {
                     final int activeThreads = getNumActiveThreads();
-                    Preconditions.checkState(activeThreads == 1, "There should be only a single active thread but found %s threads.", activeThreads);
+                    Preconditions.checkState(
+                            activeThreads == 1,
+                            "There should be only a single active thread but found %s threads.",
+                            activeThreads);
                     dispatcher.removeRpcEndpointRef(endpoint);
                     endpoint.onStop();
                     Preconditions.checkState(isEmpty(), "OnStop should be the last message");

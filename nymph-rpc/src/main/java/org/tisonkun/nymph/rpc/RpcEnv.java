@@ -2,12 +2,12 @@ package org.tisonkun.nymph.rpc;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public abstract class RpcEnv {
     private final RpcTimeout defaultLookupTimeout = new RpcTimeout(
             // TODO(@tison) respect NymphConfig
-            Duration.ofSeconds(30),
-            "nymph.rpc.lookupTimeout");
+            Duration.ofSeconds(30), "nymph.rpc.lookupTimeout");
 
     /**
      * Return RpcEndpointRef of the registered [[RpcEndpoint]]. Will be used to implement
@@ -62,4 +62,10 @@ public abstract class RpcEnv {
      * Wait until [[RpcEnv]] exits.
      */
     public abstract void awaitTermination();
+
+    /**
+     * [[RpcEndpointRef]] cannot be deserialized without [[RpcEnv]]. So when deserializing any object
+     * that contains [[RpcEndpointRef]]s, the deserialization codes should be wrapped by this method.
+     */
+    public abstract <T> T deserialize(Supplier<T> deserializationAction);
 }
