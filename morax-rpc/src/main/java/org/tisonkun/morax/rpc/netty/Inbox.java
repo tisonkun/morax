@@ -23,13 +23,13 @@ import com.google.common.base.Preconditions;
 import java.util.LinkedList;
 import javax.annotation.concurrent.GuardedBy;
 import lombok.extern.slf4j.Slf4j;
-import org.tisonkun.morax.exception.NymphException;
+import org.tisonkun.morax.exception.MoraxException;
 import org.tisonkun.morax.rpc.RpcEndpoint;
 import org.tisonkun.morax.rpc.ThreadSafeRpcEndpoint;
 import org.tisonkun.morax.util.ThrowableUtils;
 
 /**
- * An inbox that stores messages for an [[RpcEndpoint]] and posts messages to it thread-safely.
+ * An inbox that stores messages for an {@link RpcEndpoint} and posts messages to it thread-safely.
  */
 @Slf4j
 public class Inbox {
@@ -90,7 +90,7 @@ public class Inbox {
                 if (message instanceof InboxMessage.Rpc m) {
                     try {
                         if (!endpoint.receiveAndReply(m.content(), m.context())) {
-                            throw new NymphException(
+                            throw new MoraxException(
                                     "Unsupported message %s from %s".formatted(message, m.remoteAddress()));
                         }
                     } catch (Throwable t) {
@@ -101,7 +101,7 @@ public class Inbox {
                     }
                 } else if (message instanceof InboxMessage.OneWay m) {
                     if (!endpoint.receive(m.content())) {
-                        throw new NymphException(
+                        throw new MoraxException(
                                 "Unsupported message %s from %s".formatted(message, m.remoteAddress()));
                     }
                 } else if (message instanceof InboxMessage.OnStart) {

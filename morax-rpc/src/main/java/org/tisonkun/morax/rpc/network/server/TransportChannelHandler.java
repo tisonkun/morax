@@ -168,7 +168,7 @@ public class TransportChannelHandler extends SimpleChannelInboundHandler<Message
                         logger.error(
                                 "Connection to {} has been quiet for {} ms while there are outstanding "
                                         + "requests. Assuming connection is dead; please adjust"
-                                        + " nymph.{}.io.connectionTimeout if this is wrong.",
+                                        + " morax.{}.io.connectionTimeout if this is wrong.",
                                 address,
                                 requestTimeoutNs / 1000 / 1000,
                                 transportContext.getConf().getModuleName());

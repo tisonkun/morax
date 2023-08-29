@@ -24,7 +24,7 @@ import java.util.LinkedList;
 import java.util.concurrent.Future;
 import javax.annotation.concurrent.GuardedBy;
 import lombok.Getter;
-import org.tisonkun.morax.exception.NymphException;
+import org.tisonkun.morax.exception.MoraxException;
 import org.tisonkun.morax.rpc.RpcAddress;
 import org.tisonkun.morax.rpc.network.client.TransportClient;
 import org.tisonkun.morax.util.ThrowableUtils;
@@ -66,7 +66,7 @@ public class Outbox {
 
     /**
      * Send a message. If there is no active connection, cache it and launch a new connection. If
-     * [[Outbox]] is stopped, the sender will be notified with a [[SparkException]].
+     * {@link Outbox} is stopped, the sender will be notified with a {@link MoraxException}.
      */
     public void send(OutboxMessage message) {
         final boolean dropped;
@@ -80,7 +80,7 @@ public class Outbox {
         }
 
         if (dropped) {
-            message.onFailure(new NymphException("Message is dropped because Outbox is stopped"));
+            message.onFailure(new MoraxException("Message is dropped because Outbox is stopped"));
         } else {
             drainOutbox();
         }
@@ -186,7 +186,7 @@ public class Outbox {
     }
 
     /**
-     * Stop [[Inbox]] and notify the waiting messages with the cause.
+     * Stop {@link Inbox} and notify the waiting messages with the cause.
      */
     private void handleNetworkFailure(Throwable t) {
         synchronized (lock) {
@@ -215,8 +215,8 @@ public class Outbox {
     }
 
     /**
-     * Stop [[Outbox]]. The remaining messages in the [[Outbox]] will be notified with a
-     * [[SparkException]].
+     * Stop {@link Outbox}. The remaining messages in the {@link Outbox} will be notified with a
+     * {@link MoraxException}.
      */
     public void stop() {
         synchronized (lock) {
@@ -234,7 +234,7 @@ public class Outbox {
         // update messages, and it's safe to just drain the queue.
         var message = messages.poll();
         while (message != null) {
-            message.onFailure(new NymphException("Message is dropped because Outbox is stopped"));
+            message.onFailure(new MoraxException("Message is dropped because Outbox is stopped"));
             message = messages.poll();
         }
     }

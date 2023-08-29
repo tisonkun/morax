@@ -85,7 +85,7 @@ public class TransportConfig {
     }
 
     private String getConfKey(String suffix) {
-        return "nymph." + module + "." + suffix;
+        return "morax." + module + "." + suffix;
     }
 
     public String getModuleName() {

@@ -383,11 +383,11 @@ public class JavaUtils {
     }
 
     /**
-     * Create a directory inside the given parent directory with default namePrefix "spark".
+     * Create a directory inside the given parent directory with default namePrefix "morax".
      * The directory is guaranteed to be newly created, and is not marked for automatic deletion.
      */
     public static File createDirectory(String root) throws IOException {
-        return createDirectory(root, "nymph");
+        return createDirectory(root, "morax");
     }
 
     /**
@@ -395,7 +395,7 @@ public class JavaUtils {
      * newly created, and is not marked for automatic deletion.
      */
     public static File createDirectory(String root, String namePrefix) throws IOException {
-        if (namePrefix == null) namePrefix = "nymph";
+        if (namePrefix == null) namePrefix = "morax";
         int attempts = 0;
         int maxAttempts = 10;
         File dir = null;

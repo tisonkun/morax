@@ -1,3 +1,3 @@
-# Nymph
+# Morax
 
-Nymph is a messaging and data streaming system in the cloud era.
+Morax is an experimental system for messaging and data streaming.

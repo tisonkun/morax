@@ -21,10 +21,11 @@ package org.tisonkun.morax.rpc.netty;
 
 import java.nio.ByteBuffer;
 import org.tisonkun.morax.rpc.RpcAddress;
+import org.tisonkun.morax.rpc.RpcCallContext;
 import org.tisonkun.morax.rpc.network.client.RpcResponseCallback;
 
 /**
- * A [[RpcCallContext]] that will call [[RpcResponseCallback]] to send the reply back.
+ * A {@link RpcCallContext} that will call {@link RpcResponseCallback} to send the reply back.
  */
 public class RemoteNettyRpcCallContext extends NettyRpcCallContext {
     private final NettyRpcEnv nettyRpcEnv;

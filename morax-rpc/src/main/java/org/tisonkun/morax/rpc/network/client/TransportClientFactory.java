@@ -127,7 +127,7 @@ public class TransportClientFactory implements Closeable {
     /**
      * Create a {@link TransportClient} connecting to the given remote host / port.
      * <p>
-     * We maintain an array of clients (size determined by nymph.shuffle.io.numConnectionsPerPeer)
+     * We maintain an array of clients (size determined by morax.shuffle.io.numConnectionsPerPeer)
      * and randomly picks one to use. If no client was previously created in the randomly selected
      * spot, this function creates a new client and places it there.
      * <p>

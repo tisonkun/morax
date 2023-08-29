@@ -159,7 +159,7 @@ class NettyRpcEnvTest {
         final RpcEnv anotherEnv = createEnv("remote");
         // Use anotherEnv to find out the RpcEndpointRef
         final RpcEndpointRef ref = anotherEnv.setupEndpointRef(env.address(), "ask-timeout");
-        final String shortProp = "nymph.rpc.short.timeout";
+        final String shortProp = "morax.rpc.short.timeout";
         try {
             assertThatThrownBy(() -> ref.askSync("hello", new RpcTimeout(Duration.ofMillis(1), shortProp)))
                     .isInstanceOf(RpcTimeoutException.class)
@@ -189,7 +189,7 @@ class NettyRpcEnvTest {
         final RpcEnv anotherEnv = createEnv("remote");
         // Use anotherEnv to find out the RpcEndpointRef
         final RpcEndpointRef ref = anotherEnv.setupEndpointRef(env.address(), "ask-abort");
-        final String shortProp = "nymph.rpc.short.timeout";
+        final String shortProp = "morax.rpc.short.timeout";
         try {
             assertThatThrownBy(() -> {
                         final RpcTimeout timeout = new RpcTimeout(Duration.ofSeconds(10), shortProp);

@@ -29,17 +29,17 @@ public record RpcAddress(String host, int port) {
     }
 
     /**
-     * Returns a string in the form of "nymph://host:port".
+     * Returns a string in the form of "morax://host:port".
      */
-    public String toNymphURL() {
-        return "nymph://" + hostPort();
+    public String toMoraxURL() {
+        return "morax://" + hostPort();
     }
 
     /**
-     * Returns a string in the form of "nymph://name@host:port".
+     * Returns a string in the form of "morax://name@host:port".
      */
-    public String toNymphURL(String name) {
-        return "nymph://" + name + "@" + hostPort();
+    public String toMoraxURL(String name) {
+        return "morax://" + name + "@" + hostPort();
     }
 
     @Override

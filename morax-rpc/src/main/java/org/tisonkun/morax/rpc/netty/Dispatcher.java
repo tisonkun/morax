@@ -29,7 +29,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 import javax.annotation.concurrent.GuardedBy;
 import lombok.extern.slf4j.Slf4j;
-import org.tisonkun.morax.exception.NymphException;
+import org.tisonkun.morax.exception.MoraxException;
 import org.tisonkun.morax.rpc.IsolatedRpcEndpoint;
 import org.tisonkun.morax.rpc.RpcEndpoint;
 import org.tisonkun.morax.rpc.RpcEndpointAddress;
@@ -116,7 +116,7 @@ public class Dispatcher {
     }
 
     /**
-     * Send a message to all registered [[RpcEndpoint]]s in this process.
+     * Send a message to all registered {@link RpcEndpoint}s in this process.
      * <p>
      * This can be used to make network events known to all end points (e.g. "a new node connected").
      */
@@ -185,7 +185,7 @@ public class Dispatcher {
             if (stopped) {
                 exception = Optional.of(new RpcEnvStoppedException());
             } else if (loop == null) {
-                exception = Optional.of(new NymphException("Could not find %s.".formatted(endpointName)));
+                exception = Optional.of(new MoraxException("Could not find %s.".formatted(endpointName)));
             } else {
                 loop.post(endpointName, message);
                 exception = Optional.empty();

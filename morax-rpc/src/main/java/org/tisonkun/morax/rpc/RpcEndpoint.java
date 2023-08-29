@@ -20,22 +20,22 @@
 package org.tisonkun.morax.rpc;
 
 import com.google.common.base.Preconditions;
-import org.tisonkun.morax.exception.NymphException;
+import org.tisonkun.morax.exception.MoraxException;
 
 /**
  * An end point for the RPC that defines what functions to trigger given a message.
  * <p>
- * It is guaranteed that `onStart`, `receive` and `onStop` will be called in sequence.
+ * It is guaranteed that {@link #onStart}, {@link #receive} and {@link #onStop} will be called in sequence.
  * <p>
  * The life-cycle of an endpoint is:
  * <p>
  * {@code constructor -> onStart -> receive* -> onStop}
  * <p>
- * Note: `receive` can be called concurrently. If you want `receive` to be thread-safe, please use
- * [[ThreadSafeRpcEndpoint]]
+ * Note: {@link #receive} can be called concurrently. If you want {@link #receive} to be thread-safe, please use
+ * {@link ThreadSafeRpcEndpoint}
  * <p>
- * If any error is thrown from one of [[RpcEndpoint]] methods except `onError`, `onError` will be
- * invoked with the cause. If `onError` throws an error, [[RpcEnv]] will ignore it.
+ * If any error is thrown from one of {@link RpcEndpoint} methods except {@link #onError}, {@link #onError} will be
+ * invoked with the cause. If {@link #onError} throws an error, {@link RpcEnv} will ignore it.
  */
 public interface RpcEndpoint {
     /**
@@ -44,12 +44,12 @@ public interface RpcEndpoint {
     RpcEnv rpcEnv();
 
     /**
-     * The [[RpcEndpointRef]] of this [[RpcEndpoint]]. `self` will become valid when `onStart` is
-     * called. And `self` will become `null` when `onStop` is called.
+     * The {@link RpcEndpointRef} of this {@link RpcEndpoint}. {@code self} will become valid when {@link #onStart} is
+     * called. And {@code self} will become {@code null} when {@link #onStop} is called.
      *
      * <p>
-     * Note: Because before `onStart`, [[RpcEndpoint]] has not yet been registered and there is no
-     * valid [[RpcEndpointRef]] for it. So don't call `self` before `onStart` is called.
+     * Note: Because before {@link #onStart}, {@link RpcEndpoint} has not yet been registered and there is no
+     * valid {@link RpcEndpointRef} for it. So don't call {@code self} before {@link #onStart} is called.
      */
     default RpcEndpointRef self() {
         Preconditions.checkNotNull(rpcEnv(), "rpcEnv has not been initialized");
@@ -57,23 +57,23 @@ public interface RpcEndpoint {
     }
 
     /**
-     * Process messages from `RpcEndpointRef.send` or `RpcCallContext.reply`. If receiving an
-     * unmatched message, `NymphException` will be thrown and sent to `onError`.
+     * Process messages from {@link RpcEndpointRef#send} or {@link RpcCallContext#reply}. If receiving an
+     * unmatched message, {@link MoraxException} will be thrown and sent to {@link #onError}.
      *
      * @return whether the message is supported
      */
     default boolean receive(Object message) {
-        throw new NymphException(self() + " does not implement 'receive'");
+        throw new MoraxException(self() + " does not implement 'receive'");
     }
 
     /**
-     * Process messages from `RpcEndpointRef.ask`. If receiving an unmatched message,
-     * `NymphException` will be thrown and sent to `onError`.
+     * Process messages from {@link RpcEndpointRef#ask}. If receiving an unmatched message,
+     * {@link MoraxException} will be thrown and sent to {@link #onError}.
      *
      * @return whether the message is supported
      */
     default boolean receiveAndReply(Object message, RpcCallContext context) {
-        context.sendFailure(new NymphException(self() + " won't reply anything"));
+        context.sendFailure(new MoraxException(self() + " won't reply anything"));
         return true;
     }
 
@@ -86,36 +86,35 @@ public interface RpcEndpoint {
     }
 
     /**
-     * Invoked when `remoteAddress` is connected to the current node.
+     * Invoked when remoteAddress is connected to the current node.
      */
     default void onConnected(RpcAddress remoteAddress) {
         // By default, do nothing.
     }
 
     /**
-     * Invoked when `remoteAddress` is lost.
+     * Invoked when remoteAddress is lost.
      */
     default void onDisconnected(RpcAddress remoteAddress) {
         // By default, do nothing.
     }
 
     /**
-     * Invoked when some network error happens in the connection between the current node and
-     * `remoteAddress`.
+     * Invoked when some network error happens in the connection between the current node and remoteAddress.
      */
     default void onNetworkError(Throwable cause, RpcAddress remoteAddress) {
         // By default, do nothing.
     }
 
     /**
-     * Invoked before [[RpcEndpoint]] starts to handle any message.
+     * Invoked before {@link RpcEndpoint} starts to handle any message.
      */
     default void onStart() {
         // By default, do nothing.
     }
 
     /**
-     * Invoked when [[RpcEndpoint]] is stopping. `self` will be `null` in this method, and you cannot
+     * Invoked when {@link RpcEndpoint} is stopping. {@link #self} will be {@code null} in this method, and you cannot
      * use it to send or ask messages.
      */
     default void onStop() {
@@ -123,7 +122,7 @@ public interface RpcEndpoint {
     }
 
     /**
-     * A convenient method to stop [[RpcEndpoint]].
+     * A convenient method to stop {@link RpcEndpoint}.
      */
     default void stop() {
         final RpcEndpointRef self = self();

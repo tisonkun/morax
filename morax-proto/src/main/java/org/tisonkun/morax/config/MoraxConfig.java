@@ -16,4 +16,4 @@
 
 package org.tisonkun.morax.config;
 
-public class NymphConfig {}
+public class MoraxConfig {}

@@ -43,7 +43,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.tisonkun.morax.exception.NymphException;
+import org.tisonkun.morax.exception.MoraxException;
 import org.tisonkun.morax.io.ByteBufferInputStream;
 import org.tisonkun.morax.rpc.AbortableRpcFuture;
 import org.tisonkun.morax.rpc.RpcAddress;
@@ -68,13 +68,13 @@ import org.tisonkun.morax.util.ThrowableUtils;
 @Slf4j
 public class NettyRpcEnv extends RpcEnv {
     /**
-     * When deserializing the [[NettyRpcEndpointRef]], it needs a reference to [[NettyRpcEnv]].
-     * Use `currentEnv` to wrap the deserialization codes.
+     * When deserializing the {@link NettyRpcEndpointRef}, it needs a reference to {@link NettyRpcEnv}.
+     * Use CURRENT_ENV to wrap the deserialization codes.
      */
     static final DynamicVariable<NettyRpcEnv> CURRENT_ENV = new DynamicVariable<>(null);
 
     /**
-     * Similar to `currentEnv`, this variable references the client instance associated with an
+     * Similar to CURRENT_ENV, this variable references the client instance associated with an
      * RPC, in case it's needed to find out the remote address during deserialization.
      */
     static final DynamicVariable<TransportClient> CURRENT_CLIENT = new DynamicVariable<>(null);
@@ -84,7 +84,7 @@ public class NettyRpcEnv extends RpcEnv {
     @Getter(AccessLevel.MODULE)
     private final ExecutorService clientConnectionExecutor = ThreadUtils.newDaemonCachedThreadPool(
             "netty-rpc-connection",
-            // TODO(@tison) respect NymphConfig
+            // TODO(@tison) respect MoraxConfig
             64);
 
     private final ScheduledExecutorService timeoutScheduler =
@@ -104,8 +104,8 @@ public class NettyRpcEnv extends RpcEnv {
     private final TransportClientFactory clientFactory = transportContext.createClientFactory();
 
     /**
-     * A map for [[RpcAddress]] and [[Outbox]]. When we are connecting to a remote [[RpcAddress]],
-     * we just put messages to its [[Outbox]] to implement a non-blocking `send` method.
+     * A map for {@link RpcAddress} and {@link Outbox}. When we are connecting to a remote {@link RpcAddress},
+     * we just put messages to its {@link Outbox} to implement a non-blocking {@link #send} method.
      */
     private final ConcurrentMap<RpcAddress, Outbox> outboxes = new ConcurrentHashMap<>();
 
@@ -300,7 +300,7 @@ public class NettyRpcEnv extends RpcEnv {
             }
 
             final ScheduledFuture<?> timeoutCancelable = timeoutScheduler.schedule(
-                    () -> onFailure.accept(new NymphException(
+                    () -> onFailure.accept(new MoraxException(
                             "Cannot receive any reply from " + remoteAddr + " in " + timeout.duration())),
                     timeout.duration().toNanos(),
                     TimeUnit.NANOSECONDS);

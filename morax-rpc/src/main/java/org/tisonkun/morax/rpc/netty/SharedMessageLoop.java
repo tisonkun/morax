@@ -30,7 +30,7 @@ import org.tisonkun.morax.util.ThreadUtils;
  */
 public final class SharedMessageLoop extends MessageLoop {
 
-    // TODO(@tison) respect NymphConfig
+    // TODO(@tison) respect MoraxConfig
     private static int getNumOfThreads() {
         return Runtime.getRuntime().availableProcessors();
     }

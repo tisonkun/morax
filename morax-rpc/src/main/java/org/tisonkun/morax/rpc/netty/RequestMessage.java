@@ -36,7 +36,7 @@ import org.tisonkun.morax.util.ThrowableUtils;
 /**
  * The message that is sent from the sender to the receiver.
  *
- * @param senderAddress the sender address. It's `null` if this message is from a client
+ * @param senderAddress the sender address. It's {@code null} if this message is from a client
  *                      `NettyRpcEnv`.
  * @param receiver      the receiver of this message.
  * @param content       the message content.
@@ -72,7 +72,7 @@ public record RequestMessage(RpcAddress senderAddress, NettyRpcEndpointRef recei
     }
 
     /**
-     * Manually serialize [[RequestMessage]] to minimize the size.
+     * Manually serialize {@link RequestMessage} to minimize the size.
      */
     public ByteBuffer serialize() {
         final ByteBufferOutputStream bos = new ByteBufferOutputStream();

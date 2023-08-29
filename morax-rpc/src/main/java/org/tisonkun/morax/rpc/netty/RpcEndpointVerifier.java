@@ -26,7 +26,7 @@ import org.tisonkun.morax.rpc.RpcEndpoint;
 import org.tisonkun.morax.rpc.RpcEnv;
 
 /**
- * An [[RpcEndpoint]] for remote [[RpcEnv]]s to query if an `RpcEndpoint` exists.
+ * An {@link RpcEndpoint} for remote {@link RpcEnv}s to query if an `RpcEndpoint` exists.
  * <p>
  * This is used when setting up a remote endpoint reference.
  */

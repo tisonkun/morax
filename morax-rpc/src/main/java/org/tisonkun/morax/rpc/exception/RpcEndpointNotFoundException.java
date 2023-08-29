@@ -19,9 +19,9 @@
 
 package org.tisonkun.morax.rpc.exception;
 
-import org.tisonkun.morax.exception.NymphException;
+import org.tisonkun.morax.exception.MoraxException;
 
-public class RpcEndpointNotFoundException extends NymphException {
+public class RpcEndpointNotFoundException extends MoraxException {
     public RpcEndpointNotFoundException(String uri) {
         super("Cannot find endpoint:" + uri);
     }

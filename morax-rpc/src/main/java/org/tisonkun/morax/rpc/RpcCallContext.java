@@ -20,12 +20,12 @@
 package org.tisonkun.morax.rpc;
 
 /**
- * A callback that [[RpcEndpoint]] can use to send back a message or failure. It's thread-safe
+ * A callback that {@link RpcEndpoint} can use to send back a message or failure. It's thread-safe
  * and can be called in any thread.
  */
 public interface RpcCallContext {
     /**
-     * Reply a message to the sender. If the sender is [[RpcEndpoint]], its `RpcEndpoint.receive`
+     * Reply a message to the sender. If the sender is {@link RpcEndpoint}, its `RpcEndpoint.receive`
      * will be called.
      */
     void reply(Object response);

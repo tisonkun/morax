@@ -23,7 +23,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.net.URI;
 import java.net.URISyntaxException;
-import org.tisonkun.morax.exception.NymphException;
+import org.tisonkun.morax.exception.MoraxException;
 
 /**
  * An address identifier for an RPC endpoint.
@@ -40,8 +40,8 @@ public record RpcEndpointAddress(RpcAddress rpcAddress, String name) {
             final var port = uri.getPort();
             final var name = uri.getUserInfo();
 
-            // ensure in form "nymph://$name@${host}:${port}"
-            if (uri.getScheme().equals("nymph")
+            // ensure in form "morax://$name@${host}:${port}"
+            if (uri.getScheme().equals("morax")
                     && host != null
                     && name != null
                     && port >= 0
@@ -50,10 +50,10 @@ public record RpcEndpointAddress(RpcAddress rpcAddress, String name) {
                     && Strings.isNullOrEmpty(uri.getQuery())) {
                 return new RpcEndpointAddress(host, port, name);
             } else {
-                throw new NymphException("Invalid Nymph URL: " + sparkUrl);
+                throw new MoraxException("Invalid Morax URL: " + sparkUrl);
             }
         } catch (URISyntaxException e) {
-            throw new NymphException("Invalid Nymph URL: " + sparkUrl, e);
+            throw new MoraxException("Invalid Morax URL: " + sparkUrl, e);
         }
     }
 
@@ -68,6 +68,6 @@ public record RpcEndpointAddress(RpcAddress rpcAddress, String name) {
 
     @Override
     public String toString() {
-        return "nymph://%s@%s:%d".formatted(name, rpcAddress.host(), rpcAddress.port());
+        return "morax://%s@%s:%d".formatted(name, rpcAddress.host(), rpcAddress.port());
     }
 }

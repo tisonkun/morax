@@ -16,12 +16,12 @@
 
 package org.tisonkun.morax.exception;
 
-public class NymphException extends RuntimeException {
-    public NymphException(String message) {
+public class MoraxException extends RuntimeException {
+    public MoraxException(String message) {
         super(message);
     }
 
-    public NymphException(String message, Throwable cause) {
+    public MoraxException(String message, Throwable cause) {
         super(message, cause);
     }
 }
