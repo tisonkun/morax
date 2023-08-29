@@ -35,6 +35,13 @@ public record RpcAddress(String host, int port) {
         return "nymph://" + hostPort();
     }
 
+    /**
+     * Returns a string in the form of "nymph://name@host:port".
+     */
+    public String toNymphURL(String name) {
+        return "nymph://" + name + "@" + hostPort();
+    }
+
     @Override
     public String toString() {
         return hostPort();

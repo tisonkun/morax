@@ -1,5 +1,7 @@
 package org.tisonkun.nymph.rpc.netty;
 
+import java.io.Serial;
+import java.io.Serializable;
 import org.tisonkun.nymph.rpc.RpcCallContext;
 import org.tisonkun.nymph.rpc.RpcEndpoint;
 import org.tisonkun.nymph.rpc.RpcEnv;
@@ -15,7 +17,9 @@ public class RpcEndpointVerifier implements RpcEndpoint {
     /**
      * A message used to ask the remote {@link RpcEndpointVerifier} if an RpcEndpoint exists.
      */
-    public record CheckExistence(String name) {
+    public record CheckExistence(String name) implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
     }
 
     private final Dispatcher dispatcher;

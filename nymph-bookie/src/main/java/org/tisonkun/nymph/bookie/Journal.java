@@ -17,11 +17,39 @@
 package org.tisonkun.nymph.bookie;
 
 import lombok.extern.slf4j.Slf4j;
+import org.tisonkun.nymph.rpc.RpcCallContext;
+import org.tisonkun.nymph.rpc.RpcEnv;
+import org.tisonkun.nymph.rpc.RpcEnvFactory;
+import org.tisonkun.nymph.rpc.ThreadSafeRpcEndpoint;
 
 @Slf4j
 public class Journal {
+    private static class TestRpcEndpoint implements ThreadSafeRpcEndpoint {
+        @Override
+        public RpcEnv rpcEnv() {
+            return null;
+        }
+
+        @Override
+        public boolean receive(Object message) {
+            System.out.println("receive message = " + message);
+            return true;
+        }
+
+        @Override
+        public boolean receiveAndReply(Object message, RpcCallContext context) {
+            System.out.println("receiveAndReply message = " + message);
+            context.reply("Reply!");
+            return true;
+        }
+    }
 
     public static void main(String[] args) {
-        log.info("Hello world!");
+        final var env = RpcEnvFactory.create("main", "localhost", "localhost", 0);
+        final var env2 = RpcEnvFactory.create("main2", "localhost", "localhost", 0);
+        final var ref = env.setupEndpoint("ref", new TestRpcEndpoint());
+        final var ref2 = env2.setupEndpointRef(ref.address(), ref.name());
+        ref2.send("Send!");
+        ref2.ask("Ask!");
     }
 }
