@@ -41,7 +41,6 @@ import org.tisonkun.nymph.rpc.network.client.TransportClient;
 import org.tisonkun.nymph.rpc.network.client.TransportClientFactory;
 import org.tisonkun.nymph.rpc.network.config.MapConfigProvider;
 import org.tisonkun.nymph.rpc.network.config.TransportConfig;
-import org.tisonkun.nymph.rpc.network.server.NoOpRpcHandler;
 import org.tisonkun.nymph.rpc.network.server.TransportServer;
 import org.tisonkun.nymph.util.DynamicVariable;
 import org.tisonkun.nymph.util.ThreadUtils;
@@ -80,8 +79,8 @@ public class NettyRpcEnv extends RpcEnv {
     private final TransportConfig transportConfig =
             new TransportConfig("rpc", new MapConfigProvider(Collections.emptyMap()));
 
-    // TODO(@tison) real rpc handle
-    private final TransportContext transportContext = new TransportContext(transportConfig, new NoOpRpcHandler());
+    private final TransportContext transportContext =
+            new TransportContext(transportConfig, new NettyRpcHandler(dispatcher, this));
 
     private final TransportClientFactory clientFactory = transportContext.createClientFactory();
 
@@ -122,8 +121,8 @@ public class NettyRpcEnv extends RpcEnv {
     public CompletableFuture<RpcEndpointRef> asyncSetupEndpointRefByURI(String uri) {
         final RpcEndpointAddress addr = RpcEndpointAddress.create(uri);
         final NettyRpcEndpointRef endpointRef = new NettyRpcEndpointRef(addr, this);
-        final NettyRpcEndpointRef verifier = new NettyRpcEndpointRef(
-                new RpcEndpointAddress(addr.rpcAddress(), RpcEndpointVerifier.NAME), this);
+        final NettyRpcEndpointRef verifier =
+                new NettyRpcEndpointRef(new RpcEndpointAddress(addr.rpcAddress(), RpcEndpointVerifier.NAME), this);
         final CompletableFuture<Boolean> f = verifier.ask(new RpcEndpointVerifier.CheckExistence(endpointRef.name()));
         return f.thenCompose(find -> {
             if (find) {
@@ -181,7 +180,7 @@ public class NettyRpcEnv extends RpcEnv {
     private <T> T deserialize(TransportClient client, ByteBuffer bytes) {
         return (T) NettyRpcEnv.CURRENT_CLIENT.withValue(client, () -> {
             try (final ByteArrayInputStream bis = new ByteArrayInputStream(bytes.array());
-                 final ObjectInputStream ois = new ObjectInputStream(bis)) {
+                    final ObjectInputStream ois = new ObjectInputStream(bis)) {
                 return ois.readObject();
             }
         });

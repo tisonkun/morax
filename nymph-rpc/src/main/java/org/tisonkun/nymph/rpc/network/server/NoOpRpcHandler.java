@@ -23,13 +23,13 @@ import java.nio.ByteBuffer;
 import org.tisonkun.nymph.rpc.network.client.RpcResponseCallback;
 import org.tisonkun.nymph.rpc.network.client.TransportClient;
 
-/** An RpcHandler suitable for a client-only TransportContext, which cannot receive RPCs. */
+/**
+ * An RpcHandler suitable for a client-only TransportContext, which cannot receive RPCs.
+ */
 public class NoOpRpcHandler extends RpcHandler {
-    private final StreamManager streamManager;
+    private final StreamManager streamManager = new OneForOneStreamManager();
 
-    public NoOpRpcHandler() {
-        streamManager = new OneForOneStreamManager();
-    }
+    public NoOpRpcHandler() {}
 
     @Override
     public void receive(TransportClient client, ByteBuffer message, RpcResponseCallback callback) {

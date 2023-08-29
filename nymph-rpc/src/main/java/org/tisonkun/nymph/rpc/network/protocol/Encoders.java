@@ -50,8 +50,6 @@ public class Encoders {
 
     /**
      * Bitmaps are encoded with their serialization length followed by the serialization bytes.
-     *
-     * @since 3.1.0
      */
     public static class Bitmaps {
         public static int encodedLength(RoaringBitmap b) {
@@ -187,8 +185,6 @@ public class Encoders {
 
     /**
      * Bitmap arrays are encoded with the number of bitmaps followed by per-Bitmap encoding.
-     *
-     * @since 3.1.0
      */
     public static class BitmapArrays {
         public static int encodedLength(RoaringBitmap[] bitmaps) {

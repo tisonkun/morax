@@ -134,8 +134,6 @@ public abstract class RpcHandler {
 
     /**
      * Handler for {@link MergedBlockMetaRequest}.
-     *
-     * @since 3.2.0
      */
     public interface MergedBlockMetaReqHandler {
 
@@ -157,8 +155,6 @@ public abstract class RpcHandler {
      * A Noop implementation of {@link MergedBlockMetaReqHandler}. This Noop implementation is used
      * by all the RPC handlers which don't eventually delegate the {@link MergedBlockMetaRequest} to
      * ExternalBlockHandler in the network-shuffle module.
-     *
-     * @since 3.2.0
      */
     private static class NoopMergedBlockMetaReqHandler implements MergedBlockMetaReqHandler {
 
