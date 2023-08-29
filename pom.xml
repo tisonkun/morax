@@ -21,8 +21,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.tisonkun.nymph</groupId>
-    <artifactId>nymph-build-parent</artifactId>
+    <groupId>org.tisonkun.morax</groupId>
+    <artifactId>morax-build-parent</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
@@ -51,11 +51,11 @@
     </properties>
 
     <modules>
-        <module>nymph-bom</module>
-        <module>nymph-parent</module>
-        <module>nymph-bookie</module>
-        <module>nymph-proto</module>
-        <module>nymph-rpc</module>
+        <module>morax-bom</module>
+        <module>morax-parent</module>
+        <module>morax-bookie</module>
+        <module>morax-proto</module>
+        <module>morax-rpc</module>
     </modules>
 
     <build>
