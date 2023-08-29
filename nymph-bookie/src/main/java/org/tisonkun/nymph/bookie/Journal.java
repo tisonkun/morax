@@ -32,13 +32,13 @@ public class Journal {
 
         @Override
         public boolean receive(Object message) {
-            System.out.println("receive message = " + message);
+            log.error("receive message = " + message);
             return true;
         }
 
         @Override
         public boolean receiveAndReply(Object message, RpcCallContext context) {
-            System.out.println("receiveAndReply message = " + message);
+            log.error("receiveAndReply message = " + message);
             context.reply("Reply!");
             return true;
         }
@@ -50,6 +50,6 @@ public class Journal {
         final var ref = env.setupEndpoint("ref", new TestRpcEndpoint());
         final var ref2 = env2.setupEndpointRef(ref.address(), ref.name());
         ref2.send("Send!");
-        ref2.ask("Ask!");
+        ref2.ask("Ask!").join();
     }
 }

@@ -1,7 +1,6 @@
 package org.tisonkun.nymph.rpc.netty;
 
 import com.google.common.base.Preconditions;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,6 +25,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.tisonkun.nymph.exception.NymphException;
+import org.tisonkun.nymph.io.ByteBufferInputStream;
 import org.tisonkun.nymph.rpc.AbortableRpcFuture;
 import org.tisonkun.nymph.rpc.RpcAddress;
 import org.tisonkun.nymph.rpc.RpcEndpoint;
@@ -96,6 +96,7 @@ public class NettyRpcEnv extends RpcEnv {
     public NettyRpcEnv(RpcEnvConfig config) {
         this.host = config.advertiseAddress();
         this.server = transportContext.createServer(config.bindAddress(), config.port());
+        dispatcher.registerRpcEndpoint(RpcEndpointVerifier.NAME, new RpcEndpointVerifier(this, dispatcher));
     }
 
     @Override
@@ -179,8 +180,8 @@ public class NettyRpcEnv extends RpcEnv {
     @SuppressWarnings("unchecked")
     private <T> T deserialize(TransportClient client, ByteBuffer bytes) {
         return (T) NettyRpcEnv.CURRENT_CLIENT.withValue(client, () -> {
-            try (final ByteArrayInputStream bis = new ByteArrayInputStream(bytes.array());
-                    final ObjectInputStream ois = new ObjectInputStream(bis)) {
+            try (final ByteBufferInputStream bis = new ByteBufferInputStream(bytes);
+                 final ObjectInputStream ois = new ObjectInputStream(bis)) {
                 return ois.readObject();
             }
         });

@@ -9,6 +9,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import org.tisonkun.nymph.io.ByteBufferInputStream;
+import org.tisonkun.nymph.io.ByteBufferOutputStream;
 import org.tisonkun.nymph.rpc.RpcAddress;
 import org.tisonkun.nymph.rpc.RpcEndpointAddress;
 import org.tisonkun.nymph.rpc.network.client.TransportClient;
@@ -36,7 +38,7 @@ public record RequestMessage(RpcAddress senderAddress, NettyRpcEndpointRef recei
     }
 
     public static RequestMessage create(NettyRpcEnv nettyRpcEnv, TransportClient client, ByteBuffer bytes) {
-        final ByteArrayInputStream bis = new ByteArrayInputStream(bytes.array());
+        final ByteBufferInputStream bis = new ByteBufferInputStream(bytes);
         try (final DataInputStream in = new DataInputStream(bis)) {
             final RpcAddress senderAddress = readRpcAddress(in);
             final RpcEndpointAddress endpointAddress = new RpcEndpointAddress(readRpcAddress(in), in.readUTF());
@@ -56,7 +58,7 @@ public record RequestMessage(RpcAddress senderAddress, NettyRpcEndpointRef recei
      * Manually serialize [[RequestMessage]] to minimize the size.
      */
     public ByteBuffer serialize() {
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        final ByteBufferOutputStream bos = new ByteBufferOutputStream();
         try (final DataOutputStream out = new DataOutputStream(bos)) {
             writeRpcAddress(out, senderAddress);
             writeRpcAddress(out, receiver.address());
@@ -68,7 +70,7 @@ public record RequestMessage(RpcAddress senderAddress, NettyRpcEndpointRef recei
             throw new UncheckedIOException(e);
         }
 
-        return ByteBuffer.wrap(bos.toByteArray());
+        return bos.toByteBuffer();
     }
 
     private void writeRpcAddress(DataOutputStream out, RpcAddress rpcAddress) throws IOException {
