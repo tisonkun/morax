@@ -23,6 +23,8 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.concurrent.CompletableFuture;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -46,7 +48,7 @@ import org.tisonkun.nymph.util.ThrowableUtils;
  * to the endpoint are sent over the client connection, instead of needing a new connection to
  * be opened.
  */
-public class NettyRpcEndpointRef extends RpcEndpointRef {
+public class NettyRpcEndpointRef extends RpcEndpointRef implements Serializable {
     private final RpcEndpointAddress endpointAddress;
 
     private transient volatile NettyRpcEnv nettyRpcEnv;
@@ -65,6 +67,7 @@ public class NettyRpcEndpointRef extends RpcEndpointRef {
         return endpointAddress.rpcAddress();
     }
 
+    @Serial
     private void readObject(ObjectInputStream in) throws IOException {
         try {
             in.defaultReadObject();
@@ -75,6 +78,7 @@ public class NettyRpcEndpointRef extends RpcEndpointRef {
         }
     }
 
+    @Serial
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
     }
