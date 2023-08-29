@@ -100,7 +100,7 @@ public class TestRpcEndpoint implements ThreadSafeRpcEndpoint {
 
     public void verifyReceiveMessages(Object... expected) {
         assertThat(expected.length).isLessThanOrEqualTo(receiveMessages.size());
-        for (Object message: expected) {
+        for (Object message : expected) {
             final Object actual = receiveMessages.pollFirst();
             assertThat(actual).isEqualTo(message);
         }
@@ -108,7 +108,7 @@ public class TestRpcEndpoint implements ThreadSafeRpcEndpoint {
 
     public void verifyReceiveAndReplyMessages(Object... expected) {
         assertThat(expected.length).isLessThanOrEqualTo(receiveAndReplyMessages.size());
-        for (Object message: expected) {
+        for (Object message : expected) {
             final Object actual = receiveAndReplyMessages.pollFirst();
             assertThat(actual).isEqualTo(message);
         }
@@ -116,7 +116,7 @@ public class TestRpcEndpoint implements ThreadSafeRpcEndpoint {
 
     public void verifyOnConnectedMessages(RpcAddress... expected) {
         assertThat(expected.length).isLessThanOrEqualTo(onConnectedMessages.size());
-        for (Object message: expected) {
+        for (Object message : expected) {
             final RpcAddress actual = onConnectedMessages.pollFirst();
             assertThat(actual).isEqualTo(message);
         }
@@ -124,7 +124,7 @@ public class TestRpcEndpoint implements ThreadSafeRpcEndpoint {
 
     public void verifyOnDisconnectedMessages(RpcAddress... expected) {
         assertThat(expected.length).isLessThanOrEqualTo(onDisconnectedMessages.size());
-        for (Object message: expected) {
+        for (Object message : expected) {
             final RpcAddress actual = onDisconnectedMessages.pollFirst();
             assertThat(actual).isEqualTo(message);
         }
@@ -132,7 +132,7 @@ public class TestRpcEndpoint implements ThreadSafeRpcEndpoint {
 
     public void verifyOnNetworkErrorMessages(Pair<Throwable, RpcAddress>... expected) {
         assertThat(expected.length).isLessThanOrEqualTo(onNetworkErrorMessages.size());
-        for (Object message: expected) {
+        for (Object message : expected) {
             final Pair<Throwable, RpcAddress> actual = onNetworkErrorMessages.pollFirst();
             assertThat(actual).isEqualTo(message);
         }

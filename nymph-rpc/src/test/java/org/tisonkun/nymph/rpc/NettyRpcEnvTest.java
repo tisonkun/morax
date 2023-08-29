@@ -192,18 +192,19 @@ class NettyRpcEnvTest {
         final String shortProp = "nymph.rpc.short.timeout";
         try {
             assertThatThrownBy(() -> {
-                final RpcTimeout timeout = new RpcTimeout(Duration.ofSeconds(10), shortProp);
-                final AbortableRpcFuture<?> f = ref.askAbortable("hello", timeout);
-                new Thread(() -> {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        throw ThrowableUtils.sneakyThrow(e);
-                    }
-                    f.abort(new RuntimeException("TestAbort"));
-                }).start();
-                timeout.awaitResult(f.getFuture());
-            })
+                        final RpcTimeout timeout = new RpcTimeout(Duration.ofSeconds(10), shortProp);
+                        final AbortableRpcFuture<?> f = ref.askAbortable("hello", timeout);
+                        new Thread(() -> {
+                                    try {
+                                        Thread.sleep(100);
+                                    } catch (InterruptedException e) {
+                                        throw ThrowableUtils.sneakyThrow(e);
+                                    }
+                                    f.abort(new RuntimeException("TestAbort"));
+                                })
+                                .start();
+                        timeout.awaitResult(f.getFuture());
+                    })
                     .isExactlyInstanceOf(RuntimeException.class)
                     .hasMessage("TestAbort");
         } finally {
