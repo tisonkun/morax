@@ -1,7 +1,6 @@
 package org.tisonkun.nymph.rpc;
 
 import com.google.common.base.Preconditions;
-import lombok.SneakyThrows;
 import org.tisonkun.nymph.exception.NymphException;
 
 /**
@@ -41,24 +40,28 @@ public interface RpcEndpoint {
     /**
      * Process messages from `RpcEndpointRef.send` or `RpcCallContext.reply`. If receiving an
      * unmatched message, `NymphException` will be thrown and sent to `onError`.
+     *
+     * @return whether the message is supported
      */
-    default void receive(Object message) {
+    default boolean receive(Object message) {
         throw new NymphException(self() + " does not implement 'receive'");
     }
 
     /**
      * Process messages from `RpcEndpointRef.ask`. If receiving an unmatched message,
      * `NymphException` will be thrown and sent to `onError`.
+     *
+     * @return whether the message is supported
      */
-    default void receiveAndReply(RpcCallContext context) {
+    default boolean receiveAndReply(Object message, RpcCallContext context) {
         context.sendFailure(new NymphException(self() + " won't reply anything"));
+        return true;
     }
 
     /**
      * Invoked when any exception is thrown during handling messages.
      */
-    @SneakyThrows
-    default void onError(Throwable cause) {
+    default void onError(Throwable cause) throws Throwable {
         // By default, throw e and let RpcEnv handle it
         throw cause;
     }

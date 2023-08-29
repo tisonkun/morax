@@ -6,6 +6,24 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class ThrowableUtils {
     /**
+     * Extractor of non-fatal throwable. This is similar to Scala's NonFatal.
+     *
+     * @param throwable to determinate if a fatal error
+     * @return whether a fatal error
+     */
+    public static boolean isNonFatal(Throwable throwable) {
+        if (throwable != null) {
+            boolean fatal = throwable instanceof VirtualMachineError;
+            fatal = fatal || throwable instanceof ThreadDeath;
+            fatal = fatal || throwable instanceof InterruptedException;
+            fatal = fatal || throwable instanceof LinkageError;
+            return !fatal;
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * Unpacks an {@link CompletionException} and returns its cause. Otherwise, the given Throwable
      * is returned.
      *

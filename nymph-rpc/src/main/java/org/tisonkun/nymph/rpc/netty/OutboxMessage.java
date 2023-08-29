@@ -10,6 +10,7 @@ import org.tisonkun.nymph.rpc.network.client.TransportClient;
 
 public sealed interface OutboxMessage {
     void sendWith(TransportClient client);
+
     void onFailure(Throwable t);
 
     @Slf4j
@@ -38,7 +39,8 @@ public sealed interface OutboxMessage {
         private TransportClient client;
         private long requestId;
 
-        public Rpc(ByteBuffer content, BiConsumer<TransportClient, ByteBuffer> onSuccess, Consumer<Throwable> onFailure) {
+        public Rpc(
+                ByteBuffer content, BiConsumer<TransportClient, ByteBuffer> onSuccess, Consumer<Throwable> onFailure) {
             this.content = content;
             this.onSuccess = onSuccess;
             this.onFailure = onFailure;
