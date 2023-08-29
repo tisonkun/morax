@@ -15,8 +15,9 @@
 headerPath = "Apache-2.0.txt"
 
 excludes = [
-    # These files is drived from Apache Spark's RPC modules.
-    "nymph-rpc/src/main/java/org/tisonkun/nymph/rpc/**",
+    # These files is drived from Apache Spark's RPC and network modules.
+    "nymph-rpc/src/main/java/**",
+    "nymph-rpc/src/test/java/**",
 ]
 
 [properties]
