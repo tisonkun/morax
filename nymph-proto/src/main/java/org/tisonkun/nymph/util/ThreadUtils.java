@@ -1,5 +1,6 @@
 package org.tisonkun.nymph.util;
 
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -22,6 +23,25 @@ public class ThreadUtils {
             t.setDaemon(true);
             return t;
         };
+    }
+
+    public static ThreadPoolExecutor newDaemonSingleThreadExecutor(String threadName) {
+        final ThreadFactory threadFactory = r -> {
+            final Thread t = new Thread(r);
+            t.setName(threadName);
+            t.setDaemon(true);
+            return t;
+        };
+        return (ThreadPoolExecutor) Executors.newFixedThreadPool(1, threadFactory);
+    }
+
+    /**
+     * Wrapper over newFixedThreadPool. Thread names are formatted as prefix-ID, where ID is a
+     * unique, sequentially assigned integer.
+     */
+    public static ThreadPoolExecutor  newDaemonFixedThreadPool(int nThreads, String prefix) {
+        final ThreadFactory threadFactory = namedThreadFactory(prefix);
+        return (ThreadPoolExecutor) Executors.newFixedThreadPool(nThreads, threadFactory);
     }
 
     public static ThreadPoolExecutor newDaemonCachedThreadPool(String prefix, int maxThreadNumber) {

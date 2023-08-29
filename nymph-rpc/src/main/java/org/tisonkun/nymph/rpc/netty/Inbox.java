@@ -209,6 +209,6 @@ public class Inbox {
         }
 
         log.error("An error happened while processing message in the inbox for {}", endpointName, fatal);
-        throw Lombok.sneakyThrow(fatal);
+        throw ThrowableUtils.sneakyThrow(fatal);
     }
 }

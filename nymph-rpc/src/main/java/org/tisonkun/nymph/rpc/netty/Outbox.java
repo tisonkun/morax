@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import java.util.LinkedList;
 import java.util.concurrent.Future;
 import javax.annotation.concurrent.GuardedBy;
-import lombok.Lombok;
 import org.tisonkun.nymph.exception.NymphException;
 import org.tisonkun.nymph.rpc.RpcAddress;
 import org.tisonkun.nymph.rpc.network.client.TransportClient;
@@ -113,7 +112,7 @@ public class Outbox {
                     handleNetworkFailure(t);
                     return;
                 } else {
-                    throw Lombok.sneakyThrow(t);
+                    throw ThrowableUtils.sneakyThrow(t);
                 }
             }
 
@@ -151,7 +150,7 @@ public class Outbox {
                     handleNetworkFailure(t);
                     return;
                 } else {
-                    throw Lombok.sneakyThrow(t);
+                    throw ThrowableUtils.sneakyThrow(t);
                 }
             }
 

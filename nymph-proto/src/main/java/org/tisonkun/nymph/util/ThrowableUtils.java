@@ -5,6 +5,16 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class ThrowableUtils {
+    public static RuntimeException sneakyThrow(Throwable t) {
+        if (t == null) throw new NullPointerException("t");
+        return sneakyThrow0(t);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> T sneakyThrow0(Throwable t) throws T {
+        throw (T) t;
+    }
+
     /**
      * Extractor of non-fatal throwable. This is similar to Scala's NonFatal.
      *
@@ -39,7 +49,7 @@ public class ThrowableUtils {
      * is returned.
      *
      * @param throwableToStrip to strip
-     * @param typeToStrip type to strip
+     * @param typeToStrip      type to strip
      * @return Unpacked cause or given Throwable if not packed
      */
     public static Throwable stripException(Throwable throwableToStrip, Class<? extends Throwable> typeToStrip) {

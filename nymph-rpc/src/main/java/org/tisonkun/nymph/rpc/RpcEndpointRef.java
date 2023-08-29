@@ -4,7 +4,10 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class RpcEndpointRef {
-    private final RpcTimeout defaultAskTimeout = new RpcTimeout(Duration.ofSeconds(5), "nymph.rpc.askTimeout");
+    private final RpcTimeout defaultAskTimeout = new RpcTimeout(
+            // TODO(@tison) respect NymphConfig
+            Duration.ofSeconds(5),
+            "nymph.rpc.askTimeout");
 
     /**
      * Return the address for this.

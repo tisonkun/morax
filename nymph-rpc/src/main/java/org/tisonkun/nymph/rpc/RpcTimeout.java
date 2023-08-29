@@ -41,7 +41,7 @@ public record RpcTimeout(Duration duration, String timeoutProp) implements Seria
         } else {
             throwable = t;
         }
-        throw Lombok.sneakyThrow(throwable);
+        throw ThrowableUtils.sneakyThrow(throwable);
     }
 
     /**
@@ -56,7 +56,7 @@ public record RpcTimeout(Duration duration, String timeoutProp) implements Seria
                     .exceptionally(this::addMessageIfTimeout)
                     .join();
         } catch (CompletionException e) {
-            throw Lombok.sneakyThrow(ThrowableUtils.stripCompletionException(e));
+            throw ThrowableUtils.sneakyThrow(ThrowableUtils.stripCompletionException(e));
         }
     }
 }

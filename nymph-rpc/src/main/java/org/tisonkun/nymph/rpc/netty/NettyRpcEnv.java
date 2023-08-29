@@ -22,7 +22,10 @@ public class NettyRpcEnv extends RpcEnv {
     // Because TransportClientFactory.createClient is blocking, we need to run it in this thread pool
     // to implement non-blocking send/ask.
     @Getter(AccessLevel.MODULE)
-    private final ExecutorService clientConnectionExecutor = ThreadUtils.newDaemonCachedThreadPool("netty-rpc-connection", 64);
+    private final ExecutorService clientConnectionExecutor = ThreadUtils.newDaemonCachedThreadPool(
+            "netty-rpc-connection",
+            // TODO(@tison) respect NymphConfig
+            64);
 
     /**
      * A map for [[RpcAddress]] and [[Outbox]]. When we are connecting to a remote [[RpcAddress]],

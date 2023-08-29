@@ -4,7 +4,10 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class RpcEnv {
-    private final RpcTimeout defaultLookupTimeout = new RpcTimeout(Duration.ofSeconds(30), "nymph.rpc.lookupTimeout");
+    private final RpcTimeout defaultLookupTimeout = new RpcTimeout(
+            // TODO(@tison) respect NymphConfig
+            Duration.ofSeconds(30),
+            "nymph.rpc.lookupTimeout");
 
     /**
      * Return RpcEndpointRef of the registered [[RpcEndpoint]]. Will be used to implement
