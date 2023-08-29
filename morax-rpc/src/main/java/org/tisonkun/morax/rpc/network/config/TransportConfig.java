@@ -104,7 +104,7 @@ public class TransportConfig {
 
     /** Connection idle timeout in milliseconds. Default 120 secs. */
     public int connectionTimeoutMs() {
-        long defaultNetworkTimeoutS = JavaUtils.timeStringAsSec(conf.get("nymph.network.timeout", "120s"));
+        long defaultNetworkTimeoutS = JavaUtils.timeStringAsSec(conf.get("morax.network.timeout", "120s"));
         long defaultTimeoutMs =
                 JavaUtils.timeStringAsSec(conf.get(networkIoConnectionTimeoutConfigKey, defaultNetworkTimeoutS + "s"))
                         * 1000;
@@ -163,7 +163,7 @@ public class TransportConfig {
     /** Timeout for a single round trip of auth message exchange, in milliseconds. */
     public int authRTTimeoutMs() {
         return (int) JavaUtils.timeStringAsSec(
-                        conf.get("nymph.network.auth.rpcTimeout", conf.get(networkSaslTimeoutConfigKey, "30s")))
+                        conf.get("morax.network.auth.rpcTimeout", conf.get(networkSaslTimeoutConfigKey, "30s")))
                 * 1000;
     }
 
@@ -185,11 +185,11 @@ public class TransportConfig {
 
     /**
      * Minimum size of a block that we should start using memory map rather than reading in through
-     * normal IO operations. This prevents Nymph from memory mapping very small blocks. In general,
+     * normal IO operations. This prevents morax from memory mapping very small blocks. In general,
      * memory mapping has high overhead for blocks close to or below the page size of the OS.
      */
     public int memoryMapBytes() {
-        return Ints.checkedCast(JavaUtils.byteStringAsBytes(conf.get("nymph.storage.memoryMapThreshold", "2m")));
+        return Ints.checkedCast(JavaUtils.byteStringAsBytes(conf.get("morax.storage.memoryMapThreshold", "2m")));
     }
 
     /**
@@ -220,21 +220,21 @@ public class TransportConfig {
      * Maximum number of retries when binding to a port before giving up.
      */
     public int portMaxRetries() {
-        return conf.getInt("nymph.port.maxRetries", 16);
+        return conf.getInt("morax.port.maxRetries", 16);
     }
 
     /**
      * Enables strong encryption. Also enables the new auth protocol, used to negotiate keys.
      */
     public boolean encryptionEnabled() {
-        return conf.getBoolean("nymph.network.crypto.enabled", false);
+        return conf.getBoolean("morax.network.crypto.enabled", false);
     }
 
     /**
      * The cipher transformation to use for encrypting session data.
      */
     public String cipherTransformation() {
-        return conf.get("nymph.network.crypto.cipher", "AES/CTR/NoPadding");
+        return conf.get("morax.network.crypto.cipher", "AES/CTR/NoPadding");
     }
 
     /**
@@ -242,14 +242,14 @@ public class TransportConfig {
      * backwards compatibility.
      */
     public boolean saslFallback() {
-        return conf.getBoolean("nymph.network.crypto.saslFallback", true);
+        return conf.getBoolean("morax.network.crypto.saslFallback", true);
     }
 
     /**
      * Whether to enable SASL-based encryption when authenticating using SASL.
      */
     public boolean saslEncryption() {
-        return conf.getBoolean("nymph.authenticate.enableSaslEncryption", false);
+        return conf.getBoolean("morax.authenticate.enableSaslEncryption", false);
     }
 
     /**
@@ -257,14 +257,14 @@ public class TransportConfig {
      */
     public int maxSaslEncryptedBlockSize() {
         return Ints.checkedCast(
-                JavaUtils.byteStringAsBytes(conf.get("nymph.network.sasl.maxEncryptedBlockSize", "64k")));
+                JavaUtils.byteStringAsBytes(conf.get("morax.network.sasl.maxEncryptedBlockSize", "64k")));
     }
 
     /**
      * Whether the server should enforce encryption on SASL-authenticated connections.
      */
     public boolean saslServerAlwaysEncrypt() {
-        return conf.getBoolean("nymph.network.sasl.serverAlwaysEncrypt", false);
+        return conf.getBoolean("morax.network.sasl.serverAlwaysEncrypt", false);
     }
 
     /**
@@ -274,37 +274,37 @@ public class TransportConfig {
      * When disabled a new allocator is created for each transport servers and clients.
      */
     public boolean sharedByteBufAllocators() {
-        return conf.getBoolean("nymph.network.sharedByteBufAllocators.enabled", true);
+        return conf.getBoolean("morax.network.sharedByteBufAllocators.enabled", true);
     }
 
     /**
      * If enabled then off-heap byte buffers will be preferred for the shared ByteBuf allocators.
      */
     public boolean preferDirectBufsForSharedByteBufAllocators() {
-        return conf.getBoolean("nymph.network.io.preferDirectBufs", true);
+        return conf.getBoolean("morax.network.io.preferDirectBufs", true);
     }
 
     /**
      * The commons-crypto configuration for the module.
      */
     public Properties cryptoConf() {
-        return CryptoUtils.toCryptoConf("nymph.network.crypto.config.", conf.getAll());
+        return CryptoUtils.toCryptoConf("morax.network.crypto.config.", conf.getAll());
     }
 
     /**
      * The max number of chunks allowed to be transferred at the same time on shuffle service.
      * Note that new incoming connections will be closed when the max number is hit. The client will
-     * retry according to the shuffle retry configs (see `nymph.shuffle.io.maxRetries` and
-     * `nymph.shuffle.io.retryWait`), if those limits are reached the task will fail with fetch
+     * retry according to the shuffle retry configs (see `morax.shuffle.io.maxRetries` and
+     * `morax.shuffle.io.retryWait`), if those limits are reached the task will fail with fetch
      * failure.
      */
     public long maxChunksBeingTransferred() {
-        return conf.getLong("nymph.shuffle.maxChunksBeingTransferred", Long.MAX_VALUE);
+        return conf.getLong("morax.shuffle.maxChunksBeingTransferred", Long.MAX_VALUE);
     }
 
     /**
      * Percentage of io.serverThreads used by netty to process ChunkFetchRequest.
-     * When the config `nymph.shuffle.server.chunkFetchHandlerThreadsPercent` is set,
+     * When the config `morax.shuffle.server.chunkFetchHandlerThreadsPercent` is set,
      * shuffle server will use a separate EventLoopGroup to process ChunkFetchRequest messages.
      * Although when calling the async writeAndFlush on the underlying channel to send
      * response back to client, the I/O on the channel is still being handled by
@@ -320,7 +320,7 @@ public class TransportConfig {
      * chunked fetch requests are percentage of io.serverThreads (if defined) else it is a percentage
      * of 2 * #cores. However, a percentage of 0 means netty default number of threads which
      * is 2 * #cores ignoring io.serverThreads. The percentage here is configured via
-     * nymph.shuffle.server.chunkFetchHandlerThreadsPercent. The returned value is rounded off to
+     * morax.shuffle.server.chunkFetchHandlerThreadsPercent. The returned value is rounded off to
      * ceiling of the nearest integer.
      */
     public int chunkFetchHandlerThreads() {
@@ -328,22 +328,22 @@ public class TransportConfig {
             return 0;
         }
         int chunkFetchHandlerThreadsPercent =
-                Integer.parseInt(conf.get("nymph.shuffle.server.chunkFetchHandlerThreadsPercent"));
+                Integer.parseInt(conf.get("morax.shuffle.server.chunkFetchHandlerThreadsPercent"));
         int threads = this.serverThreads() > 0 ? this.serverThreads() : 2 * NettyRuntime.availableProcessors();
         return (int) Math.ceil(threads * (chunkFetchHandlerThreadsPercent / 100.0));
     }
 
     /**
      * Whether to use a separate EventLoopGroup to process ChunkFetchRequest messages, it is decided
-     * by the config `nymph.shuffle.server.chunkFetchHandlerThreadsPercent` is set or not.
+     * by the config `morax.shuffle.server.chunkFetchHandlerThreadsPercent` is set or not.
      */
     public boolean separateChunkFetchRequest() {
-        return conf.getInt("nymph.shuffle.server.chunkFetchHandlerThreadsPercent", 0) > 0;
+        return conf.getInt("morax.shuffle.server.chunkFetchHandlerThreadsPercent", 0) > 0;
     }
 
     /**
      * Percentage of io.serverThreads used by netty to process FinalizeShuffleMerge. When the config
-     * `nymph.shuffle.server.finalizeShuffleMergeThreadsPercent` is set, shuffle server will use a
+     * `morax.shuffle.server.finalizeShuffleMergeThreadsPercent` is set, shuffle server will use a
      * separate EventLoopGroup to process FinalizeShuffleMerge messages, which are I/O intensive and
      * could take long time to process due to disk contentions. The number of threads used for
      * handling finalizeShuffleMerge requests are percentage of io.serverThreads (if defined) else it
@@ -355,44 +355,44 @@ public class TransportConfig {
         }
         Preconditions.checkArgument(
                 separateFinalizeShuffleMerge(),
-                "Please set nymph.shuffle.server.finalizeShuffleMergeThreadsPercent to a positive value");
+                "Please set morax.shuffle.server.finalizeShuffleMergeThreadsPercent to a positive value");
         int finalizeShuffleMergeThreadsPercent =
-                Integer.parseInt(conf.get("nymph.shuffle.server.finalizeShuffleMergeThreadsPercent"));
+                Integer.parseInt(conf.get("morax.shuffle.server.finalizeShuffleMergeThreadsPercent"));
         int threads = this.serverThreads() > 0 ? this.serverThreads() : 2 * NettyRuntime.availableProcessors();
         return (int) Math.ceil(threads * (finalizeShuffleMergeThreadsPercent / 100.0));
     }
 
     /**
      * Whether to use a separate EventLoopGroup to process FinalizeShuffleMerge messages, it is
-     * decided by the config `nymph.shuffle.server.finalizeShuffleMergeThreadsPercent` is set or not.
+     * decided by the config `morax.shuffle.server.finalizeShuffleMergeThreadsPercent` is set or not.
      */
     public boolean separateFinalizeShuffleMerge() {
-        return conf.getInt("nymph.shuffle.server.finalizeShuffleMergeThreadsPercent", 0) > 0;
+        return conf.getInt("morax.shuffle.server.finalizeShuffleMergeThreadsPercent", 0) > 0;
     }
 
     /**
      * Whether to use the old protocol while doing the shuffle block fetching.
-     * It is only enabled while we need the compatibility in the scenario of new Nymph version
+     * It is only enabled while we need the compatibility in the scenario of new morax version
      * job fetching blocks from old version external shuffle service.
      */
     public boolean useOldFetchProtocol() {
-        return conf.getBoolean("nymph.shuffle.useOldFetchProtocol", false);
+        return conf.getBoolean("morax.shuffle.useOldFetchProtocol", false);
     }
 
     /** Whether to enable sasl retries or not. The number of retries is dictated by the config
-     * `nymph.shuffle.io.maxRetries`.
+     * `morax.shuffle.io.maxRetries`.
      */
     public boolean enableSaslRetries() {
-        return conf.getBoolean("nymph.shuffle.sasl.enableRetries", false);
+        return conf.getBoolean("morax.shuffle.sasl.enableRetries", false);
     }
 
     /**
      * The maximum size of cache in memory which is used in push-based shuffle for storing merged
      * index files. This cache is in addition to the one configured via
-     * nymph.shuffle.service.index.cache.size.
+     * morax.shuffle.service.index.cache.size.
      */
     public long mergedIndexCacheSize() {
-        return JavaUtils.byteStringAsBytes(conf.get("nymph.shuffle.push.server.mergedIndexCacheSize", "100m"));
+        return JavaUtils.byteStringAsBytes(conf.get("morax.shuffle.push.server.mergedIndexCacheSize", "100m"));
     }
 
     /**
@@ -402,7 +402,7 @@ public class TransportConfig {
      * blocks for this shuffle partition.
      */
     public int ioExceptionsThresholdDuringMerge() {
-        return conf.getInt("nymph.shuffle.push.server.ioExceptionsThresholdDuringMerge", 4);
+        return conf.getInt("morax.shuffle.push.server.ioExceptionsThresholdDuringMerge", 4);
     }
 
     /**
@@ -411,6 +411,6 @@ public class TransportConfig {
      */
     public long mergedShuffleCleanerShutdownTimeout() {
         return JavaUtils.timeStringAsSec(
-                conf.get("nymph.shuffle.push.server.mergedShuffleCleaner.shutdown.timeout", "60s"));
+                conf.get("morax.shuffle.push.server.mergedShuffleCleaner.shutdown.timeout", "60s"));
     }
 }

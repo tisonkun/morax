@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 public abstract class RpcEndpointRef {
     private final RpcTimeout defaultAskTimeout = new RpcTimeout(
             // TODO(@tison) respect MoraxConfig
-            Duration.ofSeconds(5), "nymph.rpc.askTimeout");
+            Duration.ofSeconds(5), "morax.rpc.askTimeout");
 
     /**
      * Return the address for this.
