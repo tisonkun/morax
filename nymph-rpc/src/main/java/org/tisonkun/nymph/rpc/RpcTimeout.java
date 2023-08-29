@@ -7,7 +7,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import lombok.SneakyThrows;
+import lombok.Lombok;
 import org.tisonkun.nymph.rpc.exception.RpcTimeoutException;
 import org.tisonkun.nymph.util.ThrowableUtils;
 
@@ -34,15 +34,14 @@ public record RpcTimeout(Duration duration, String timeoutProp) implements Seria
      * <p>
      * This can be used in the recover callback of a Future to add to a TimeoutException.
      */
-    @SneakyThrows
     public <T> T addMessageIfTimeout(Throwable t) {
-        if (t instanceof RpcTimeoutException te) {
-            throw te;
-        } else if (t instanceof TimeoutException te) {
-            throw createRpcTimeoutException(te);
+        final Throwable throwable;
+        if (t instanceof TimeoutException te) {
+            throwable = createRpcTimeoutException(te);
         } else {
-            throw t;
+            throwable = t;
         }
+        throw Lombok.sneakyThrow(throwable);
     }
 
     /**
@@ -51,14 +50,13 @@ public record RpcTimeout(Duration duration, String timeoutProp) implements Seria
      *
      * @param future the Future to be awaited
      */
-    @SneakyThrows
     public <T> T awaitResult(CompletableFuture<T> future) {
         try {
             return future.orTimeout(duration.toMillis(), TimeUnit.MILLISECONDS)
                     .exceptionally(this::addMessageIfTimeout)
                     .join();
         } catch (CompletionException e) {
-            throw ThrowableUtils.stripCompletionException(e);
+            throw Lombok.sneakyThrow(ThrowableUtils.stripCompletionException(e));
         }
     }
 }

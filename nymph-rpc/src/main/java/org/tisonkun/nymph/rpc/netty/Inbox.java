@@ -3,7 +3,7 @@ package org.tisonkun.nymph.rpc.netty;
 import com.google.common.base.Preconditions;
 import java.util.LinkedList;
 import javax.annotation.concurrent.GuardedBy;
-import lombok.SneakyThrows;
+import lombok.Lombok;
 import lombok.extern.slf4j.Slf4j;
 import org.tisonkun.nymph.exception.NymphException;
 import org.tisonkun.nymph.rpc.RpcEndpoint;
@@ -177,7 +177,6 @@ public class Inbox {
     /**
      * Calls action closure, and calls the endpoint's onError function in the case of exceptions.
      */
-    @SneakyThrows
     private void safelyCall(RpcEndpoint endpoint, Runnable action) {
         try {
             action.run();
@@ -202,7 +201,7 @@ public class Inbox {
         }
     }
 
-    private void dealWithFatalError(Throwable fatal) throws Throwable {
+    private void dealWithFatalError(Throwable fatal) {
         synchronized (lock) {
             Preconditions.checkState(numActiveThreads > 0, "The number of active threads should be positive.");
             // Should reduce the number of active threads before throw the error.
@@ -210,6 +209,6 @@ public class Inbox {
         }
 
         log.error("An error happened while processing message in the inbox for {}", endpointName, fatal);
-        throw fatal;
+        throw Lombok.sneakyThrow(fatal);
     }
 }
