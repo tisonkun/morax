@@ -19,4 +19,4 @@
 
 package org.tisonkun.morax.rpc;
 
-public record RpcEnvConfig(String name, String bindAddress, String advertiseAddress, int port) {}
+public record RpcEnvConfig(String name, String bindAddress, String advertiseAddress, int port, boolean clientMode) {}

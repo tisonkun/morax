@@ -29,7 +29,11 @@ public interface RpcEnvFactory {
     RpcEnv create(RpcEnvConfig config);
 
     static RpcEnv create(String name, String bindAddress, String advertiseAddress, int port) {
-        final RpcEnvConfig config = new RpcEnvConfig(name, bindAddress, advertiseAddress, port);
+        return create(name, bindAddress, advertiseAddress, port, false);
+    }
+
+    static RpcEnv create(String name, String bindAddress, String advertiseAddress, int port, boolean clientMode) {
+        final RpcEnvConfig config = new RpcEnvConfig(name, bindAddress, advertiseAddress, port, clientMode);
         return new NettyRpcEnvFactory().create(config);
     }
 }

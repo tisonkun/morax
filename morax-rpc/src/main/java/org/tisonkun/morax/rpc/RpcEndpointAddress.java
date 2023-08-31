@@ -23,19 +23,21 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import java.net.URI;
 import java.net.URISyntaxException;
+import javax.annotation.Nullable;
 import org.tisonkun.morax.exception.MoraxException;
+import org.tisonkun.morax.rpc.netty.NettyRpcEnv;
 
 /**
  * An address identifier for an RPC endpoint.
  *
- * @param rpcAddress The socket address of the endpoint.
+ * @param rpcAddress The socket address of the endpoint. It's {@code null} when this address pointing to
+ *                   an endpoint in a client {@link NettyRpcEnv}.
  * @param name       Name of the endpoint.
  */
-public record RpcEndpointAddress(RpcAddress rpcAddress, String name) {
-
-    public static RpcEndpointAddress create(String sparkUrl) {
+public record RpcEndpointAddress(@Nullable RpcAddress rpcAddress, String name) {
+    public static RpcEndpointAddress create(String url) {
         try {
-            final var uri = new URI(sparkUrl);
+            final var uri = new URI(url);
             final var host = uri.getHost();
             final var port = uri.getPort();
             final var name = uri.getUserInfo();
@@ -50,15 +52,14 @@ public record RpcEndpointAddress(RpcAddress rpcAddress, String name) {
                     && Strings.isNullOrEmpty(uri.getQuery())) {
                 return new RpcEndpointAddress(host, port, name);
             } else {
-                throw new MoraxException("Invalid Morax URL: " + sparkUrl);
+                throw new MoraxException("Invalid Morax URL: " + url);
             }
         } catch (URISyntaxException e) {
-            throw new MoraxException("Invalid Morax URL: " + sparkUrl, e);
+            throw new MoraxException("Invalid Morax URL: " + url, e);
         }
     }
 
     public RpcEndpointAddress {
-        Preconditions.checkNotNull(rpcAddress, "RpcAddress must be provided.");
         Preconditions.checkNotNull(name, "RpcEndpoint name must be provided.");
     }
 
@@ -68,6 +69,10 @@ public record RpcEndpointAddress(RpcAddress rpcAddress, String name) {
 
     @Override
     public String toString() {
-        return "morax://%s@%s:%d".formatted(name, rpcAddress.host(), rpcAddress.port());
+        if (rpcAddress != null) {
+            return "morax://%s@%s:%d".formatted(name, rpcAddress.host(), rpcAddress.port());
+        } else {
+            return "morax-client://%s".formatted(name);
+        }
     }
 }

@@ -77,6 +77,10 @@ public class NettyRpcHandler extends RpcHandler {
         Preconditions.checkNotNull(addr);
         final RpcAddress clientAddr = new RpcAddress(addr.getHostString(), addr.getPort());
         final RequestMessage requestMessage = RequestMessage.create(nettyRpcEnv, client, message);
+        if (requestMessage.senderAddress() == null) {
+            // Create a new message with the socket address of the client as the sender.
+            return new RequestMessage(clientAddr, requestMessage.receiver(), requestMessage.content());
+        }
         // The remote RpcEnv listens to some port, we should also fire a RemoteProcessConnected for
         // the listening address
         final RpcAddress remoteEnvAddress = requestMessage.senderAddress();

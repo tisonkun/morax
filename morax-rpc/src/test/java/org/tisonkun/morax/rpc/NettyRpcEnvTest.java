@@ -24,21 +24,36 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.tisonkun.morax.rpc.exception.RpcTimeoutException;
 import org.tisonkun.morax.util.ThrowableUtils;
 
 class NettyRpcEnvTest {
-    private static final RpcEnv env = createEnv("test");
+    private RpcEnv env;
 
-    @AfterAll
-    public static void teardown() {
-        env.shutdown();
+    @BeforeEach
+    public void setup(TestInfo info) {
+        assertThat(env).isNull();
+        env = createEnv(info.getDisplayName());
+    }
+
+    @AfterEach
+    public void teardown() {
+        if (env != null) {
+            env.shutdown();
+            env = null;
+        }
     }
 
     private static RpcEnv createEnv(String name) {
-        return RpcEnvFactory.create(name, "localhost", "localhost", 0);
+        return createEnv(name, false);
+    }
+
+    private static RpcEnv createEnv(String name, boolean clientMode) {
+        return RpcEnvFactory.create(name, "localhost", "localhost", 0, clientMode);
     }
 
     @Test
@@ -70,7 +85,7 @@ class NettyRpcEnvTest {
             }
         });
 
-        final RpcEnv anotherEnv = createEnv("remote");
+        final RpcEnv anotherEnv = createEnv("remote", true);
         // Use anotherEnv to find out the RpcEndpointRef
         final RpcEndpointRef ref = anotherEnv.setupEndpointRef(env.address(), "send-remotely");
         try {
@@ -128,7 +143,7 @@ class NettyRpcEnvTest {
                 return super.receiveAndReply(message, context);
             }
         });
-        final RpcEnv anotherEnv = createEnv("remote");
+        final RpcEnv anotherEnv = createEnv("remote", true);
         // Use anotherEnv to find out the RpcEndpointRef
         final RpcEndpointRef ref = anotherEnv.setupEndpointRef(env.address(), "ask-remotely");
         try {
@@ -156,7 +171,7 @@ class NettyRpcEnvTest {
                 return super.receiveAndReply(message, context);
             }
         });
-        final RpcEnv anotherEnv = createEnv("remote");
+        final RpcEnv anotherEnv = createEnv("remote", true);
         // Use anotherEnv to find out the RpcEndpointRef
         final RpcEndpointRef ref = anotherEnv.setupEndpointRef(env.address(), "ask-timeout");
         final String shortProp = "morax.rpc.short.timeout";
@@ -186,7 +201,7 @@ class NettyRpcEnvTest {
                 return super.receiveAndReply(message, context);
             }
         });
-        final RpcEnv anotherEnv = createEnv("remote");
+        final RpcEnv anotherEnv = createEnv("remote", true);
         // Use anotherEnv to find out the RpcEndpointRef
         final RpcEndpointRef ref = anotherEnv.setupEndpointRef(env.address(), "ask-abort");
         final String shortProp = "morax.rpc.short.timeout";

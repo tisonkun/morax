@@ -114,8 +114,12 @@ public class NettyRpcEnv extends RpcEnv {
 
     public NettyRpcEnv(RpcEnvConfig config) {
         this.host = config.advertiseAddress();
-        this.server = transportContext.createServer(config.bindAddress(), config.port());
-        dispatcher.registerRpcEndpoint(RpcEndpointVerifier.NAME, new RpcEndpointVerifier(this, dispatcher));
+        if (config.clientMode()) {
+            this.server = null;
+        } else {
+            this.server = transportContext.createServer(config.bindAddress(), config.port());
+            dispatcher.registerRpcEndpoint(RpcEndpointVerifier.NAME, new RpcEndpointVerifier(this, dispatcher));
+        }
     }
 
     @Override
@@ -176,7 +180,9 @@ public class NettyRpcEnv extends RpcEnv {
 
         timeoutScheduler.shutdownNow();
         dispatcher.stop();
-        server.close();
+        if (server != null) {
+            server.close();
+        }
         clientFactory.close();
         clientConnectionExecutor.shutdownNow();
         transportContext.close();
@@ -276,7 +282,7 @@ public class NettyRpcEnv extends RpcEnv {
         };
 
         try {
-            if (remoteAddr.equals(address())) {
+            if (Objects.equals(remoteAddr, address())) {
                 final CompletableFuture<Object> f = new CompletableFuture<>();
                 f.whenComplete((r, t) -> {
                     if (r != null) {
