@@ -53,13 +53,12 @@ public record RpcTimeout(Duration duration, String timeoutProp) implements Seria
      * This can be used in the recover callback of a Future to add to a TimeoutException.
      */
     public <T> T addMessageIfTimeout(Throwable t) {
-        final Throwable throwable;
-        if (t instanceof TimeoutException te) {
-            throwable = createRpcTimeoutException(te);
+        final Throwable throwable = ThrowableUtils.stripCompletionException(t);
+        if (throwable instanceof TimeoutException te) {
+            throw ThrowableUtils.sneakyThrow(createRpcTimeoutException(te));
         } else {
-            throwable = t;
+            throw ThrowableUtils.sneakyThrow(throwable);
         }
-        throw ThrowableUtils.sneakyThrow(throwable);
     }
 
     /**
