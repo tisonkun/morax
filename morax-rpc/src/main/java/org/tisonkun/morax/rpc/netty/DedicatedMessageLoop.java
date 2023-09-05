@@ -53,7 +53,7 @@ public final class DedicatedMessageLoop extends MessageLoop {
 
     @Override
     public void post(String endpointName, InboxMessage message) {
-        Preconditions.checkState(name.equals(endpointName), "name=%s but endpointName=%", name, endpointName);
+        Preconditions.checkState(name.equals(endpointName), "name=%s but endpointName=%s", name, endpointName);
         inbox.post(message);
         setActive(inbox);
     }
@@ -61,7 +61,7 @@ public final class DedicatedMessageLoop extends MessageLoop {
     @Override
     public void unregister(String endpointName) {
         synchronized (lock) {
-            Preconditions.checkState(name.equals(endpointName), "name=%s but endpointName=%", name, endpointName);
+            Preconditions.checkState(name.equals(endpointName), "name=%s but endpointName=%s", name, endpointName);
             inbox.stop();
             // Mark active to handle the OnStop message.
             setActive(inbox);
