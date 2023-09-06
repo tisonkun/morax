@@ -9,22 +9,22 @@ import lombok.Data;
 public class Entry {
     private final long ledgerId;
     private final long entryId;
-    private final long lastAddConfirmed;
+    private final long lastConfirmed;
     private final ByteBuf payload;
 
     public static Entry of(ByteBuf entry) {
         final ByteBuf payload = entry.duplicate();
         final long ledgerId = payload.readLong();
         final long entryId = payload.readLong();
-        final long lastAddConfirmed = payload.readLong();
-        return new Entry(ledgerId, entryId, lastAddConfirmed, payload);
+        final long lastConfirmed = payload.readLong();
+        return new Entry(ledgerId, entryId, lastConfirmed, payload);
     }
 
     public ByteBuf toBytes() {
         final ByteBuf result = Unpooled.buffer(8 + 8 + 8 + payload.readableBytes());
         result.writeLong(ledgerId);
         result.writeLong(entryId);
-        result.writeLong(lastAddConfirmed);
+        result.writeLong(lastConfirmed);
         result.writeBytes(payload, payload.readerIndex(), payload.readableBytes());
         return result;
     }
@@ -34,7 +34,7 @@ public class Entry {
         return "Entry{" +
                 "ledgerId=" + ledgerId +
                 ", entryId=" + entryId +
-                ", lastAddConfirmed=" + lastAddConfirmed +
+                ", lastConfirmed=" + lastConfirmed +
                 ", payload=" + payload.toString(StandardCharsets.UTF_8) +
                 '}';
     }
