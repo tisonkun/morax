@@ -17,22 +17,21 @@
  * under the License.
  */
 
-package org.tisonkun.morax.rpc.network.client;
-
-import io.netty.channel.Channel;
+package org.tisonkun.morax.rpc.network.sasl;
 
 /**
- * A bootstrap which is executed on a TransportClient before it is returned to the user.
- * This enables an initial exchange of information (e.g., SASL authentication tokens) on a once-per-
- * connection basis.
- * <p>
- * Since connections (and TransportClients) are reused as much as possible, it is generally
- * reasonable to perform an expensive bootstrapping operation, as they often share a lifespan with
- * the JVM itself.
+ * Interface for getting a secret key associated with some application.
  */
-public interface TransportClientBootstrap {
+public interface SecretKeyHolder {
     /**
-     * Performs the bootstrapping operation, throwing an exception on failure.
+     * Gets an appropriate SASL User for the given appId.
+     * @throws IllegalArgumentException if the given appId is not associated with a SASL user.
      */
-    void doBootstrap(TransportClient client, Channel channel) throws RuntimeException;
+    String getSaslUser(String appId);
+
+    /**
+     * Gets an appropriate SASL secret key for the given appId.
+     * @throws IllegalArgumentException if the given appId is not associated with a SASL secret key.
+     */
+    String getSecretKey(String appId);
 }

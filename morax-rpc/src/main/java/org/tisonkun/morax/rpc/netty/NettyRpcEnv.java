@@ -26,6 +26,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,10 +57,12 @@ import org.tisonkun.morax.rpc.exception.RpcEndpointNotFoundException;
 import org.tisonkun.morax.rpc.exception.RpcEnvStoppedException;
 import org.tisonkun.morax.rpc.network.TransportContext;
 import org.tisonkun.morax.rpc.network.client.TransportClient;
+import org.tisonkun.morax.rpc.network.client.TransportClientBootstrap;
 import org.tisonkun.morax.rpc.network.client.TransportClientFactory;
 import org.tisonkun.morax.rpc.network.config.MapConfigProvider;
 import org.tisonkun.morax.rpc.network.config.TransportConfig;
 import org.tisonkun.morax.rpc.network.server.TransportServer;
+import org.tisonkun.morax.rpc.network.server.TransportServerBootstrap;
 import org.tisonkun.morax.util.DynamicVariable;
 import org.tisonkun.morax.util.ThreadUtils;
 import org.tisonkun.morax.util.ThrowableUtils;
@@ -100,7 +103,7 @@ public class NettyRpcEnv extends RpcEnv {
     private final TransportContext transportContext =
             new TransportContext(transportConfig, new NettyRpcHandler(dispatcher, this));
 
-    private final TransportClientFactory clientFactory = transportContext.createClientFactory();
+    private final TransportClientFactory clientFactory = transportContext.createClientFactory(createClientBootstraps());
 
     /**
      * A map for {@link RpcAddress} and {@link Outbox}. When we are connecting to a remote {@link RpcAddress},
@@ -116,9 +119,15 @@ public class NettyRpcEnv extends RpcEnv {
         if (config.clientMode()) {
             this.server = null;
         } else {
-            this.server = transportContext.createServer(config.bindAddress(), config.port());
+            final List<TransportServerBootstrap> bootstraps = Collections.emptyList();
+            this.server = transportContext.createServer(config.bindAddress(), config.port(), bootstraps);
             dispatcher.registerRpcEndpoint(RpcEndpointVerifier.NAME, new RpcEndpointVerifier(this, dispatcher));
         }
+    }
+
+    private List<TransportClientBootstrap> createClientBootstraps() {
+        // new AuthClientBootstrap(transportConf, securityManager.getSaslUser(), securityManager));
+        return Collections.emptyList();
     }
 
     @Override
