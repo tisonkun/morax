@@ -14,12 +14,6 @@
 
 headerPath = "Apache-2.0.txt"
 
-excludes = [
-    # These files is drived from Apache Spark's RPC and network modules.
-    "morax-rpc/src/main/java/**",
-    "morax-rpc/src/test/java/**",
-]
-
 [properties]
 inceptionYear = 2023
 copyrightOwner = "tison <wander4096@gmail.com>"

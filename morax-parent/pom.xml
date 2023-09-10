@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.tisonkun.morax</groupId>
         <artifactId>morax-build-parent</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.1.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>morax-parent</artifactId>

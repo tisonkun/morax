@@ -23,7 +23,7 @@
 
     <groupId>org.tisonkun.morax</groupId>
     <artifactId>morax-build-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -57,7 +57,6 @@
         <module>morax-parent</module>
         <module>morax-bookie</module>
         <module>morax-proto</module>
-        <module>morax-rpc</module>
     </modules>
 
     <build>
