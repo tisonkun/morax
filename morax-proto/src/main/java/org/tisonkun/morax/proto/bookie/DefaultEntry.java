@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.bookie;
+package org.tisonkun.morax.proto.bookie;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.StandardCharsets;
 import lombok.Data;
 
+/**
+ * Default implementation of {@link Entry} based on in-memory {@link ByteBuf}.
+ */
 @Data
-public class Entry {
+public class DefaultEntry implements Entry {
     private final long ledgerId;
     private final long entryId;
     private final long lastConfirmed;
@@ -30,14 +33,24 @@ public class Entry {
 
     private transient volatile ByteBuf cachedBytes;
 
-    public static Entry of(ByteBuf entry) {
-        final ByteBuf payload = entry.duplicate();
-        final long ledgerId = payload.readLong();
-        final long entryId = payload.readLong();
-        final long lastConfirmed = payload.readLong();
-        final Entry result = new Entry(ledgerId, entryId, lastConfirmed, payload);
-        result.cachedBytes = entry.duplicate();
-        return result;
+    @Override
+    public long getLedgerId() {
+        return ledgerId;
+    }
+
+    @Override
+    public long getEntryId() {
+        return entryId;
+    }
+
+    @Override
+    public long getLastConfirmed() {
+        return lastConfirmed;
+    }
+
+    @Override
+    public ByteBuf getPayload() {
+        return payload;
     }
 
     public ByteBuf toBytes() {

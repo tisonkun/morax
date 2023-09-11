@@ -24,6 +24,8 @@ import java.nio.file.Path;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.tisonkun.morax.proto.bookie.DefaultEntry;
+import org.tisonkun.morax.proto.bookie.Entry;
 
 class LedgerTest {
 
@@ -33,8 +35,8 @@ class LedgerTest {
         final Ledger ledger = new Ledger(1, ledgerFile);
 
         final Entry[] entries = new Entry[] {
-            new Entry(1, 1, 1, Unpooled.copiedBuffer("testAddAndGetEntry-1", StandardCharsets.UTF_8)),
-            new Entry(1, 2, 2, Unpooled.copiedBuffer("testAddAndGetEntry-2", StandardCharsets.UTF_8)),
+            new DefaultEntry(1, 1, 1, Unpooled.copiedBuffer("testAddAndGetEntry-1", StandardCharsets.UTF_8)),
+            new DefaultEntry(1, 2, 2, Unpooled.copiedBuffer("testAddAndGetEntry-2", StandardCharsets.UTF_8)),
         };
 
         ledger.addEntry(entries[0]);

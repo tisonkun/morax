@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.tisonkun.morax.proto.bookie.Entry;
 
 @Slf4j
 public class Ledger {
@@ -93,7 +94,7 @@ public class Ledger {
             final int bytesLen = sizeBuf.readInt();
             final ByteBuf entry = Unpooled.buffer(bytesLen);
             entry.writeBytes(channel, position + Integer.BYTES, bytesLen);
-            return Entry.of(entry);
+            return Entry.fromBytes(entry);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
