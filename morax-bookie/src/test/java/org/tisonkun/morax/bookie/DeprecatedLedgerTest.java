@@ -27,12 +27,12 @@ import org.junit.jupiter.api.io.TempDir;
 import org.tisonkun.morax.proto.bookie.DefaultEntry;
 import org.tisonkun.morax.proto.bookie.Entry;
 
-class LedgerTest {
+class DeprecatedLedgerTest {
 
     @Test
     void testAddAndGetEntry(@TempDir Path tempDir) {
         final File ledgerFile = tempDir.resolve("1.log").toFile();
-        final Ledger ledger = new Ledger(1, ledgerFile);
+        final DeprecatedLedger ledger = new DeprecatedLedger(1, ledgerFile);
 
         final Entry[] entries = new Entry[] {
             new DefaultEntry(1, 1, 1, Unpooled.copiedBuffer("testAddAndGetEntry-1", StandardCharsets.UTF_8)),
