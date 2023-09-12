@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.bookie;
+package org.tisonkun.morax.bookie.storage;
 
 import static org.tisonkun.morax.proto.exception.ExceptionMessageBuilder.exMsg;
 import com.google.common.base.Preconditions;

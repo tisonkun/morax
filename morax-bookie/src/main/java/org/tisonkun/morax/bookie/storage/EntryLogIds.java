@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.bookie;
+package org.tisonkun.morax.bookie.storage;
 
 import java.io.File;
 import java.time.Duration;

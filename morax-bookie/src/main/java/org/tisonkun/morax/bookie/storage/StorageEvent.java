@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.bookie;
+package org.tisonkun.morax.bookie.storage;
 
 /**
  * Storage layer events for logging.

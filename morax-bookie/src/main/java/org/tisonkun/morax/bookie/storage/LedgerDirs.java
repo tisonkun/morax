@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.bookie;
+package org.tisonkun.morax.bookie.storage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -87,6 +87,11 @@ public class LedgerDirs {
 
     public LedgerDirs(List<File> dirs) {
         this.dirs = dirs;
+    }
+
+    public File getLedgerDir(long ledgerId) {
+        final int index = Math.floorMod(ledgerId, dirs.size());
+        return dirs.get(index);
     }
 
     public List<File> getAllDirs() {

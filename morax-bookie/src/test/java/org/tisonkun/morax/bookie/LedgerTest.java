@@ -28,6 +28,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.tisonkun.morax.bookie.storage.EntryLogIds;
+import org.tisonkun.morax.bookie.storage.LedgerDirs;
 import org.tisonkun.morax.proto.bookie.DefaultEntry;
 import org.tisonkun.morax.proto.bookie.Entry;
 
