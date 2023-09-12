@@ -16,10 +16,5 @@
 
 package org.tisonkun.morax.proto.bookie;
 
-import lombok.Data;
-
-@Data
-public class EntryLocation {
-    private final int logId;
-    private final long position;
+public record EntryLocation(int logId, long position) {
 }

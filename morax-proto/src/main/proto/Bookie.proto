@@ -1,0 +1,51 @@
+syntax = "proto3";
+package moraxpb;
+
+option java_package = "org.tisonkun.morax.proto.bookie";
+option java_multiple_files = true;
+option java_outer_classname = 'BookieProtos';
+option java_generate_equals_and_hash = true;
+
+service BookieService {
+  rpc addEntry(AddEntryRequest) returns (AddEntryReply) {}
+  rpc readEntry(ReadEntryRequest) returns (ReadEntryReply) {}
+}
+
+message AddEntryRequest {
+    EntryProto entry = 1;
+}
+
+message AddEntryReply {
+  int64 ledgerId = 1;
+  int64 entryId = 2;
+  StatusCode status = 3;
+}
+
+message ReadEntryRequest {
+  int64 ledgerId = 1;
+  int64 entryId = 2;
+}
+
+message ReadEntryReply {
+  EntryProto entry = 1;
+  StatusCode status = 2;
+}
+
+message EntryProto {
+  int64 ledgerId = 1;
+  int64 entryId = 2;
+  int64 lastConfirmed = 3;
+  bytes payload = 4;
+}
+
+enum StatusCode {
+  OK = 0;
+
+  NO_LEDGER = 400;
+  NO_ENTRY = 401;
+  BAD_REQUEST = 402;
+
+  IO = 500;
+  AUTH = 501;
+  BAD_VERSION = 502;
+}

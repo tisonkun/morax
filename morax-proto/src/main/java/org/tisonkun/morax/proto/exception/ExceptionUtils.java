@@ -54,10 +54,10 @@ public class ExceptionUtils {
      * @return packed UncheckedIOException.
      */
     public static UncheckedIOException asUncheckedIOException(Throwable t) {
-        if (t instanceof UncheckedIOException) {
-            return (UncheckedIOException) t;
-        } else if (t instanceof IOException) {
-            return new UncheckedIOException((IOException) t);
+        if (t instanceof UncheckedIOException e) {
+            return e;
+        } else if (t instanceof IOException e) {
+            return new UncheckedIOException(e);
         } else {
             return new UncheckedIOException(new IOException(t));
         }

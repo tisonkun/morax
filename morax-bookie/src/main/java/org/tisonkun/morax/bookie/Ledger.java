@@ -74,7 +74,7 @@ public class Ledger {
             return null;
         }
 
-        final int logId = location.getLogId();
+        final int logId = location.logId();
         final EntryLogReader entryLogReader;
         try {
             entryLogReader = entryLogReaderCache.get(logId, () -> {
@@ -83,8 +83,8 @@ public class Ledger {
             });
         } catch (ExecutionException e) {
             final Throwable t = ExceptionUtils.stripException(e, ExecutionException.class);
-            if (t instanceof IOException) {
-                throw (IOException) t;
+            if (t instanceof IOException ioe) {
+                throw ioe;
             } else {
                 final String message = exMsg("Error loading reader in cache")
                         .kv("logId", logId)
@@ -101,7 +101,7 @@ public class Ledger {
                     exMsg("Cached reader already closed").kv("logId", logId).toString());
         }
 
-        final ByteBuf entry = entryLogReader.readEntryAt(location.getPosition());
+        final ByteBuf entry = entryLogReader.readEntryAt(location.position());
         return Entry.fromBytes(entry);
     }
 
