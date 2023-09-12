@@ -33,17 +33,13 @@
 
         <!-- lib dependencies -->
         <assertj.version>3.24.2</assertj.version>
-        <codahale.metrics.version>4.2.19</codahale.metrics.version>
-        <commons-crypto.version>1.1.0</commons-crypto.version>
         <commons-lang3.version>3.13.0</commons-lang3.version>
         <guava.version>32.1.2-jre</guava.version>
         <jetbrains-annotations.version>24.0.1</jetbrains-annotations.version>
         <junit.version>5.9.2</junit.version>
         <lombok.version>1.18.26</lombok.version>
         <netty.version>4.1.97.Final</netty.version>
-        <roaringbitmap.version>0.9.47</roaringbitmap.version>
         <slf4j.version>2.0.7</slf4j.version>
-        <tink.version>1.9.0</tink.version>
 
         <!-- bundled maven plugins -->
         <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
