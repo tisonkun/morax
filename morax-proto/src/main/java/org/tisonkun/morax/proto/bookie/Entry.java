@@ -17,6 +17,7 @@
 package org.tisonkun.morax.proto.bookie;
 
 import io.netty.buffer.ByteBuf;
+import java.util.Objects;
 
 public interface Entry {
     /**
@@ -41,7 +42,22 @@ public interface Entry {
      */
     ByteBuf getPayload();
 
-    ByteBuf toBytes();
+    /**
+     * @return size to serialize this entry.
+     */
+    int serializedSize();
+
+    /**
+     * Write this entry serialized to the given buffer.
+     *
+     * @param byteBuf where this entry to be written to.
+     */
+    void writeToBytes(ByteBuf byteBuf);
+
+    /**
+     * @return {@link EntryProto} that is logically identical to this entry.
+     */
+    EntryProto toEntryProto();
 
     static Entry fromBytes(ByteBuf entry) {
         final ByteBuf payload = entry.duplicate();
@@ -49,5 +65,32 @@ public interface Entry {
         final long entryId = payload.readLong();
         final long lastConfirmed = payload.readLong();
         return new DefaultEntry(ledgerId, entryId, lastConfirmed, payload);
+    }
+
+    static Entry fromProtos(EntryProto entryProto) {
+        return new EntryProtoEntryAdaptor(entryProto);
+    }
+
+    static boolean sanityEquals(Entry e1, Entry e2) {
+        if (e1 == e2) {
+            return true;
+        } else if (e1 == null || e2 == null) {
+            return false;
+        } else {
+            return e1.getLedgerId() == e2.getLedgerId() && e1.getEntryId() == e2.getEntryId();
+        }
+    }
+
+    static boolean deepEquals(Entry e1, Entry e2) {
+        if (e1 == e2) {
+            return true;
+        } else if (e1 == null || e2 == null) {
+            return false;
+        } else {
+            return e1.getLedgerId() == e2.getLedgerId()
+                    && e1.getEntryId() == e2.getEntryId()
+                    && e1.getLastConfirmed() == e2.getLastConfirmed()
+                    && Objects.equals(e1.getPayload(), e2.getPayload());
+        }
     }
 }

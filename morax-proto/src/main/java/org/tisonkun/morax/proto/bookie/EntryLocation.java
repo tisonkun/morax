@@ -16,5 +16,4 @@
 
 package org.tisonkun.morax.proto.bookie;
 
-public record EntryLocation(int logId, long position) {
-}
+public record EntryLocation(int logId, long position) {}

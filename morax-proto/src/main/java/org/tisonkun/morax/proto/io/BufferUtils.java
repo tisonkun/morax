@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.proto.bookie;
+package org.tisonkun.morax.proto.io;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.Test;
+import java.nio.ByteBuffer;
+import lombok.experimental.UtilityClass;
 
-class DefaultEntryTest {
-    @Test
-    void testCodec() {
-        final ByteBuf payload = Unpooled.copiedBuffer("DefaultEntryTest", StandardCharsets.UTF_8);
-        final Entry entry = new DefaultEntry(1, 1, 1, payload);
-        final Entry result = Entry.fromBytes(entry.toBytes());
-        assertThat(result).isEqualTo(entry);
+@UtilityClass
+public class BufferUtils {
+    public static ByteBuf byteStringToByteBuf(ByteString bytes) {
+        final ByteBuffer byteBuffer = bytes.asReadOnlyByteBuffer();
+        return Unpooled.buffer(byteBuffer.position()).writeBytes(byteBuffer);
     }
 }

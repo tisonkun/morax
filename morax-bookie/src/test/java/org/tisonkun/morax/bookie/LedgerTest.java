@@ -17,6 +17,7 @@
 package org.tisonkun.morax.bookie;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.google.protobuf.ByteString;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import java.io.IOException;
@@ -32,9 +33,10 @@ import org.tisonkun.morax.bookie.storage.EntryLogIds;
 import org.tisonkun.morax.bookie.storage.LedgerDirs;
 import org.tisonkun.morax.proto.bookie.DefaultEntry;
 import org.tisonkun.morax.proto.bookie.Entry;
+import org.tisonkun.morax.proto.bookie.EntryProto;
+import org.tisonkun.morax.proto.bookie.EntryProtoEntryAdaptor;
 
 class LedgerTest {
-
     @Test
     void testAddAndGetEntry(@TempDir Path tempDir) throws IOException {
         final LedgerDirs ledgerDirs = new LedgerDirs(Collections.singletonList(tempDir.toFile()));
@@ -46,19 +48,40 @@ class LedgerTest {
         final Entry[] entries = new Entry[] {
             new DefaultEntry(ledgerId, 1, 1, Unpooled.copiedBuffer("testAddAndGetEntry-1", StandardCharsets.UTF_8)),
             new DefaultEntry(ledgerId, 2, 2, Unpooled.copiedBuffer("testAddAndGetEntry-2", StandardCharsets.UTF_8)),
+            new EntryProtoEntryAdaptor(EntryProto.newBuilder()
+                    .setLedgerId(ledgerId)
+                    .setEntryId(3)
+                    .setPayload(ByteString.copyFromUtf8("testAddAndGetEntry-3"))
+                    .build()),
         };
 
         ledger.addEntry(entries[0]);
         ledger.addEntry(entries[1]);
+        ledger.addEntry(entries[2]);
         ledger.flush();
 
-        assertThat(ledger.readEntry(entries[1].getEntryId())).isEqualTo(entries[1]);
-        assertThat(ledger.readEntry(entries[0].getEntryId())).isEqualTo(entries[0]);
-        assertThat(ledger.readEntry(entries[1].getEntryId())).isEqualTo(entries[1]);
+        for (int i = 0; i < entries.length; i++) {
+            final int idx = entries.length - 1 - i;
+            final Entry expected = entries[idx];
+            final Entry actual = ledger.readEntry(entries[idx].getEntryId());
+            assertThat(Entry.sanityEquals(expected, actual))
+                    .describedAs("expected=%s, actual=%s", expected, actual)
+                    .isTrue();
+            assertThat(Entry.deepEquals(expected, actual))
+                    .describedAs("expected=%s, actual=%s", expected, actual)
+                    .isTrue();
+        }
 
-        for (int i = 0; i < 10; i++) {
-            final int idx = ((new Random().nextInt() % 2) + 2) % 2;
-            assertThat(ledger.readEntry(entries[idx].getEntryId())).isEqualTo(entries[idx]);
+        for (int i = 0; i < 100; i++) {
+            final int idx = Math.floorMod(new Random().nextInt(), entries.length);
+            final Entry expected = entries[idx];
+            final Entry actual = ledger.readEntry(entries[idx].getEntryId());
+            assertThat(Entry.sanityEquals(expected, actual))
+                    .describedAs("expected=%s, actual=%s", expected, actual)
+                    .isTrue();
+            assertThat(Entry.deepEquals(expected, actual))
+                    .describedAs("expected=%s, actual=%s", expected, actual)
+                    .isTrue();
         }
     }
 }

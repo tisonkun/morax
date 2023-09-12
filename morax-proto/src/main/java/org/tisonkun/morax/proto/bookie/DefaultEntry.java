@@ -16,6 +16,8 @@
 
 package org.tisonkun.morax.proto.bookie;
 
+import com.google.common.base.Objects;
+import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.StandardCharsets;
@@ -53,7 +55,28 @@ public class DefaultEntry implements Entry {
         return payload;
     }
 
-    public ByteBuf toBytes() {
+    @Override
+    public int serializedSize() {
+        return cachedBytes().readableBytes();
+    }
+
+    @Override
+    public void writeToBytes(ByteBuf byteBuf) {
+        final ByteBuf cachedBytes = cachedBytes();
+        byteBuf.writeBytes(cachedBytes, cachedBytes.readerIndex(), cachedBytes.readableBytes());
+    }
+
+    @Override
+    public EntryProto toEntryProto() {
+        return EntryProto.newBuilder()
+                .setLedgerId(ledgerId)
+                .setEntryId(entryId)
+                .setLastConfirmed(lastConfirmed)
+                .setPayload(ByteString.copyFrom(payload.nioBuffer()))
+                .build();
+    }
+
+    private ByteBuf cachedBytes() {
         if (cachedBytes != null) {
             return cachedBytes;
         }
@@ -64,6 +87,11 @@ public class DefaultEntry implements Entry {
         result.writeBytes(payload, payload.readerIndex(), payload.readableBytes());
         cachedBytes = result;
         return result;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(ledgerId, entryId);
     }
 
     @Override
