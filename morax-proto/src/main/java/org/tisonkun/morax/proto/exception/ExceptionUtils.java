@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.proto.util;
+package org.tisonkun.morax.proto.exception;
 
-import java.util.concurrent.CompletionException;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
-public class ThrowableUtils {
+public class ExceptionUtils {
     public static RuntimeException sneakyThrow(Throwable t) {
         if (t == null) throw new NullPointerException("t");
         return sneakyThrow0(t);
@@ -32,28 +33,33 @@ public class ThrowableUtils {
     }
 
     /**
-     * Unpacks an {@link CompletionException} and returns its cause. Otherwise, the given Throwable
-     * is returned.
-     *
-     * @param throwable to unpack if it is an CompletionException
-     * @return Cause of CompletionException or given Throwable
-     */
-    public static Throwable stripCompletionException(Throwable throwable) {
-        return stripException(throwable, CompletionException.class);
-    }
-
-    /**
      * Unpacks a specified exception and returns its cause. Otherwise, the given {@link Throwable}
      * is returned.
      *
-     * @param throwableToStrip to strip
-     * @param typeToStrip      type to strip
-     * @return Unpacked cause or given Throwable if not packed
+     * @param throwableToStrip to strip.
+     * @param typeToStrip      type to strip.
+     * @return unpacked cause or given Throwable if not packed.
      */
     public static Throwable stripException(Throwable throwableToStrip, Class<? extends Throwable> typeToStrip) {
         while (typeToStrip.isAssignableFrom(throwableToStrip.getClass()) && throwableToStrip.getCause() != null) {
             throwableToStrip = throwableToStrip.getCause();
         }
         return throwableToStrip;
+    }
+
+    /**
+     * Packs a specified exception as {@link UncheckedIOException}.
+     *
+     * @param t to wrap.
+     * @return packed UncheckedIOException.
+     */
+    public static UncheckedIOException asUncheckedIOException(Throwable t) {
+        if (t instanceof UncheckedIOException e) {
+            return e;
+        } else if (t instanceof IOException e) {
+            return new UncheckedIOException(e);
+        } else {
+            return new UncheckedIOException(new IOException(t));
+        }
     }
 }
