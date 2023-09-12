@@ -30,4 +30,10 @@ public enum StorageEvent {
      * if the current set of candidates is depleted.
      */
     ENTRY_LOG_IDS_CANDIDATES_SELECTED,
+
+    /**
+     * The entry logger has started writing a new log file. The previous log file may not
+     * be entirely flushed when this is called, though they will be after an explicit flush call.
+     */
+    LOG_ROLL,
 }

@@ -27,11 +27,15 @@ import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Set;
+import lombok.Getter;
 
 public class EntryLogReader implements AutoCloseable {
     private final int logId;
     private final Path logFile;
     private final FileChannel channel;
+
+    @Getter
+    private volatile boolean closed;
 
     public EntryLogReader(int logId, Path logFile) throws IOException {
         this.logId = logId;
@@ -98,13 +102,14 @@ public class EntryLogReader implements AutoCloseable {
      * @param offset the offset at which to read the entry.
      * @return a {@link ByteBuf} that the caller must release.
      */
-    public ByteBuf readEntryAt(int offset) throws IOException {
+    public ByteBuf readEntryAt(long offset) throws IOException {
         assertValidOffset(offset);
-        final int sizeOffset = offset - Integer.BYTES;
+        final long sizeOffset = offset - Integer.BYTES;
         if (sizeOffset < 0) {
             throw new IOException(exMsg("Invalid offset; buffer size missing")
                     .kv("logFile", logFile)
-                    .kv("offset", offset).toString());
+                    .kv("offset", offset)
+                    .toString());
         }
         final int entrySize = readIntAt(sizeOffset);
         if (entrySize <= 0) {
@@ -130,6 +135,7 @@ public class EntryLogReader implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
+        closed = true;
         channel.close();
     }
 }

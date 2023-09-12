@@ -16,16 +16,95 @@
 
 package org.tisonkun.morax.bookie;
 
-import java.io.File;
+import static org.tisonkun.morax.proto.exception.ExceptionMessageBuilder.exMsg;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import io.netty.buffer.ByteBuf;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
+import org.tisonkun.morax.proto.bookie.Entry;
+import org.tisonkun.morax.proto.bookie.EntryLocation;
+import org.tisonkun.morax.proto.exception.ExceptionUtils;
 
 @Slf4j
 public class Ledger {
-    private final long ledgerId;
-    private final File ledgerDir;
+    private static final String LOG_FILE_SUFFIX = ".log";
 
-    public Ledger(long ledgerId, File ledgerDir) {
+    private final EntryPosIndices posIndices = new EntryPosIndices();
+    private final Cache<Integer, EntryLogReader> entryLogReaderCache = CacheBuilder.newBuilder()
+            .concurrencyLevel(1) // important to avoid too aggressive eviction
+            .build();
+
+    private final long ledgerId;
+    private final Path ledgerDir;
+    private final EntryLogIds logIds;
+    private final Executor writeExecutor;
+
+    private EntryLogWriter entryLogWriter;
+
+    public Ledger(long ledgerId, Path ledgerDir, EntryLogIds logIds, Executor writeExecutor) {
         this.ledgerId = ledgerId;
         this.ledgerDir = ledgerDir;
+        this.logIds = logIds;
+        this.writeExecutor = writeExecutor;
+    }
+
+    public void addEntry(Entry entry) throws IOException {
+        if (entryLogWriter == null) {
+            final int logId = logIds.nextId();
+            entryLogWriter = new EntryLogWriter(logId, ledgerDir.resolve(logFileName(logId)), writeExecutor);
+            log.atInfo().addKeyValue("newLogId", logId).log("event={}", StorageEvent.LOG_ROLL.toString());
+        }
+        final int logId = entryLogWriter.logId();
+        final long offset = entryLogWriter.writeDelimited(entry.toBytes());
+        posIndices.addPosition(ledgerId, entry.getEntryId(), logId, offset);
+    }
+
+    public Entry readEntry(long entryId) throws IOException {
+        final EntryLocation location = posIndices.findPosition(ledgerId, entryId);
+        if (location == null) {
+            return null;
+        }
+
+        final int logId = location.getLogId();
+        final EntryLogReader entryLogReader;
+        try {
+            entryLogReader = entryLogReaderCache.get(logId, () -> {
+                final Path logFile = ledgerDir.resolve(logFileName(logId));
+                return new EntryLogReader(logId, logFile);
+            });
+        } catch (ExecutionException e) {
+            final Throwable t = ExceptionUtils.stripException(e, ExecutionException.class);
+            if (t instanceof IOException) {
+                throw (IOException) t;
+            } else {
+                final String message = exMsg("Error loading reader in cache")
+                        .kv("logId", logId)
+                        .toString();
+                throw new IOException(message, t);
+            }
+        }
+
+        // It is possible though unlikely, that the cache has already cleaned up this cache entry
+        // during the get operation. This is more likely to happen when there is great demand
+        // for many separate readers in a low memory environment.
+        if (entryLogReader.isClosed()) {
+            throw new IOException(
+                    exMsg("Cached reader already closed").kv("logId", logId).toString());
+        }
+
+        final ByteBuf entry = entryLogReader.readEntryAt(location.getPosition());
+        return Entry.fromBytes(entry);
+    }
+
+    public void flush() throws IOException {
+        entryLogWriter.flush();
+    }
+
+    public static String logFileName(int logId) {
+        return Long.toHexString(logId) + LOG_FILE_SUFFIX;
     }
 }

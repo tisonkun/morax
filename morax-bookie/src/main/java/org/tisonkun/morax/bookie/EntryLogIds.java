@@ -66,13 +66,12 @@ public class EntryLogIds {
         nextId = largestGap.getLeft();
         maxId = largestGap.getRight();
 
+        final long durationMs = Duration.between(start, Instant.now()).toMillis();
         log.atInfo()
                 .addKeyValue("dirs", dirs)
                 .addKeyValue("nextId", nextId)
                 .addKeyValue("maxId", maxId)
-                .addKeyValue(
-                        "durationMs", Duration.between(start, Instant.now()).toMillis())
-                .addKeyValue("event", StorageEvent.ENTRY_LOG_IDS_CANDIDATES_SELECTED)
-                .log();
+                .addKeyValue("durationMs", durationMs)
+                .log("event={}", StorageEvent.ENTRY_LOG_IDS_CANDIDATES_SELECTED.toString());
     }
 }

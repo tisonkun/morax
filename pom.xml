@@ -46,6 +46,7 @@
 
         <!-- community maven plugin -->
         <spotless.version>2.39.0</spotless.version>
+        <palantir-java-format.version>2.36.0</palantir-java-format.version>
     </properties>
 
     <modules>
@@ -79,7 +80,7 @@
                     </formats>
                     <java>
                         <palantirJavaFormat>
-                            <version>2.36.0</version>
+                            <version>${palantir-java-format.version}</version>
                         </palantirJavaFormat>
                         <!-- static imports first, then others, no blank lines  -->
                         <importOrder>
