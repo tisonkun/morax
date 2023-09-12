@@ -59,7 +59,7 @@ public class EntryLogIds {
         final List<File> dirs = ledgerDirs.getAllDirs();
         final List<Integer> currentLogIds = new ArrayList<>();
 
-        for (File dir: dirs) {
+        for (File dir : dirs) {
             currentLogIds.addAll(LedgerDirs.findLogIds(dir));
         }
         final Pair<Integer, Integer> largestGap = LedgerDirs.findLargestGap(currentLogIds);
@@ -70,7 +70,8 @@ public class EntryLogIds {
                 .addKeyValue("dirs", dirs)
                 .addKeyValue("nextId", nextId)
                 .addKeyValue("maxId", maxId)
-                .addKeyValue("durationMs", Duration.between(start, Instant.now()).toMillis())
+                .addKeyValue(
+                        "durationMs", Duration.between(start, Instant.now()).toMillis())
                 .addKeyValue("event", StorageEvent.ENTRY_LOG_IDS_CANDIDATES_SELECTED)
                 .log();
     }

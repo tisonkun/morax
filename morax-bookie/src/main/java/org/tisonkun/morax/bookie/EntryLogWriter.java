@@ -42,10 +42,10 @@ public class EntryLogWriter implements AutoCloseable {
     private final Object bufferLock = new Object();
     private final List<CompletableFuture<Void>> outstandingWrites = new ArrayList<>();
 
-    private final FileChannel channel;
     private final int logId;
     private final Path logFile;
     private final Executor writeExecutor;
+    private final FileChannel channel;
 
     private ByteBuf byteBuf;
     private long offset;
@@ -153,13 +153,15 @@ public class EntryLogWriter implements AutoCloseable {
                 final long offsetToWrite = offset;
                 offset += bytesToWrite;
 
-                addOutstandingWrite(CompletableFuture.runAsync(() -> {
-                    try {
-                        writeBuffer(bufferToFlush, bytesToWrite, offsetToWrite);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }, writeExecutor));
+                addOutstandingWrite(CompletableFuture.runAsync(
+                        () -> {
+                            try {
+                                writeBuffer(bufferToFlush, bytesToWrite, offsetToWrite);
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                        },
+                        writeExecutor));
 
                 // must acquire after triggering the write
                 // otherwise it could try to acquire a buffer without kicking off
@@ -223,7 +225,7 @@ public class EntryLogWriter implements AutoCloseable {
             }
         }
 
-        this.channel.close();
+        channel.close();
     }
 
     public static long serializedSize(ByteBuf buf) {

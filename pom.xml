@@ -45,7 +45,7 @@
         <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
 
         <!-- community maven plugin -->
-        <spotless.version>2.36.0</spotless.version>
+        <spotless.version>2.39.0</spotless.version>
     </properties>
 
     <modules>
@@ -79,7 +79,7 @@
                     </formats>
                     <java>
                         <palantirJavaFormat>
-                            <version>2.30.0</version>
+                            <version>2.36.0</version>
                         </palantirJavaFormat>
                         <!-- static imports first, then others, no blank lines  -->
                         <importOrder>
