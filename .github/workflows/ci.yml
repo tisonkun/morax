@@ -39,12 +39,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
-      - name: Check license header (Morax)
+      - name: Check license header
         uses: korandoru/hawkeye@v3
-      - name: Check license header (Spark)
-        uses: korandoru/hawkeye@v3
-        with:
-          config: licenserc-spark.toml
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
