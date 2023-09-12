@@ -32,7 +32,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
-import org.tisonkun.morax.proto.bookie.Entry;
 import org.tisonkun.morax.proto.exception.ExceptionUtils;
 
 /**
@@ -80,20 +79,20 @@ public class EntryLogWriter implements AutoCloseable {
     }
 
     /**
-     * Write an entry as delimited buffer the log. The size of the buffer is first written and then the buffer itself.
+     * Write a delimited buffer the log. The size of the buffer is first written and then the buffer itself.
      * <p>
      * Note that the returned offset is for the buffer itself, not the size. So, if a buffer is written at the
      * start of the file, the returned offset will be 4, not 0.
      *
      * @return the offset of the buffer within the file.
      */
-    public long writeDelimitedEntry(Entry entry) throws IOException {
+    public long writeDelimitedEntry(ByteBuf bytes) throws IOException {
         synchronized (bufferLock) {
-            if (byteBuf.maxWritableBytes() < serializedSize(entry)) {
+            if (byteBuf.maxWritableBytes() < serializedSize(bytes)) {
                 flushBuffer();
             }
 
-            final int readable = entry.serializedSize();
+            final int readable = bytes.readableBytes();
             final long beforePosition = position();
             final long bufferPosition = beforePosition + Integer.BYTES;
             if (bufferPosition < 0) {
@@ -105,7 +104,7 @@ public class EntryLogWriter implements AutoCloseable {
                         .toString());
             }
             byteBuf.writeInt(readable);
-            entry.writeToBytes(byteBuf);
+            byteBuf.writeBytes(bytes);
             return bufferPosition;
         }
     }
@@ -229,7 +228,7 @@ public class EntryLogWriter implements AutoCloseable {
         channel.close();
     }
 
-    public static long serializedSize(Entry entry) {
-        return entry.serializedSize() + Integer.BYTES;
+    public static long serializedSize(ByteBuf buf) {
+        return buf.readableBytes() + Integer.BYTES;
     }
 }

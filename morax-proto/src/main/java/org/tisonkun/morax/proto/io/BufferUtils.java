@@ -26,6 +26,6 @@ import lombok.experimental.UtilityClass;
 public class BufferUtils {
     public static ByteBuf byteStringToByteBuf(ByteString bytes) {
         final ByteBuffer byteBuffer = bytes.asReadOnlyByteBuffer();
-        return Unpooled.buffer(byteBuffer.position()).writeBytes(byteBuffer);
+        return Unpooled.wrappedBuffer(byteBuffer);
     }
 }

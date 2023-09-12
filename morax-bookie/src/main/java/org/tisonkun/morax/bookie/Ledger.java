@@ -64,7 +64,7 @@ public class Ledger {
             log.atInfo().addKeyValue("newLogId", logId).log("event={}", StorageEvent.LOG_ROLL.toString());
         }
         final int logId = entryLogWriter.logId();
-        final long offset = entryLogWriter.writeDelimitedEntry(entry);
+        final long offset = entryLogWriter.writeDelimitedEntry(entry.toBytes());
         posIndices.addPosition(ledgerId, entry.getEntryId(), logId, offset);
     }
 

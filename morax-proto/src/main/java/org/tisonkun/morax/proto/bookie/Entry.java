@@ -17,7 +17,7 @@
 package org.tisonkun.morax.proto.bookie;
 
 import io.netty.buffer.ByteBuf;
-import java.util.Objects;
+import org.tisonkun.morax.proto.io.BufferUtils;
 
 public interface Entry {
     /**
@@ -43,16 +43,9 @@ public interface Entry {
     ByteBuf getPayload();
 
     /**
-     * @return size to serialize this entry.
+     * Serialize this entry to bytes.
      */
-    int serializedSize();
-
-    /**
-     * Write this entry serialized to the given buffer.
-     *
-     * @param byteBuf where this entry to be written to.
-     */
-    void writeToBytes(ByteBuf byteBuf);
+    ByteBuf toBytes();
 
     /**
      * @return {@link EntryProto} that is logically identical to this entry.
@@ -68,29 +61,10 @@ public interface Entry {
     }
 
     static Entry fromProtos(EntryProto entryProto) {
-        return new EntryProtoEntryAdaptor(entryProto);
-    }
-
-    static boolean sanityEquals(Entry e1, Entry e2) {
-        if (e1 == e2) {
-            return true;
-        } else if (e1 == null || e2 == null) {
-            return false;
-        } else {
-            return e1.getLedgerId() == e2.getLedgerId() && e1.getEntryId() == e2.getEntryId();
-        }
-    }
-
-    static boolean deepEquals(Entry e1, Entry e2) {
-        if (e1 == e2) {
-            return true;
-        } else if (e1 == null || e2 == null) {
-            return false;
-        } else {
-            return e1.getLedgerId() == e2.getLedgerId()
-                    && e1.getEntryId() == e2.getEntryId()
-                    && e1.getLastConfirmed() == e2.getLastConfirmed()
-                    && Objects.equals(e1.getPayload(), e2.getPayload());
-        }
+        final long ledgerId = entryProto.getLedgerId();
+        final long entryId = entryProto.getEntryId();
+        final long lastConfirmed = entryProto.getLastConfirmed();
+        final ByteBuf payload = BufferUtils.byteStringToByteBuf(entryProto.getPayload());
+        return new DefaultEntry(ledgerId, entryId, lastConfirmed, payload);
     }
 }

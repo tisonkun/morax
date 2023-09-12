@@ -16,12 +16,12 @@
 
 package org.tisonkun.morax.proto.bookie;
 
-import com.google.common.base.Objects;
 import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.charset.StandardCharsets;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Default implementation of {@link Entry} based on in-memory {@link ByteBuf}.
@@ -33,6 +33,7 @@ public class DefaultEntry implements Entry {
     private final long lastConfirmed;
     private final ByteBuf payload;
 
+    @EqualsAndHashCode.Exclude
     private transient volatile ByteBuf cachedBytes;
 
     @Override
@@ -56,14 +57,8 @@ public class DefaultEntry implements Entry {
     }
 
     @Override
-    public int serializedSize() {
-        return cachedBytes().readableBytes();
-    }
-
-    @Override
-    public void writeToBytes(ByteBuf byteBuf) {
-        final ByteBuf cachedBytes = cachedBytes();
-        byteBuf.writeBytes(cachedBytes, cachedBytes.readerIndex(), cachedBytes.readableBytes());
+    public ByteBuf toBytes() {
+        return cachedBytes();
     }
 
     @Override
@@ -90,13 +85,8 @@ public class DefaultEntry implements Entry {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(ledgerId, entryId);
-    }
-
-    @Override
     public String toString() {
-        return "Entry{" + "ledgerId="
+        return "DefaultEntry{" + "ledgerId="
                 + ledgerId + ", entryId="
                 + entryId + ", lastConfirmed="
                 + lastConfirmed + ", payload="
