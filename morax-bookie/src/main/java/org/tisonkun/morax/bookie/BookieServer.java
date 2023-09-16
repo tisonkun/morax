@@ -16,48 +16,42 @@
 
 package org.tisonkun.morax.bookie;
 
-import io.grpc.stub.StreamObserver;
-import org.tisonkun.morax.proto.bookie.AddEntryReply;
-import org.tisonkun.morax.proto.bookie.AddEntryRequest;
-import org.tisonkun.morax.proto.bookie.BookieServiceGrpc;
-import org.tisonkun.morax.proto.bookie.Entry;
-import org.tisonkun.morax.proto.bookie.ReadEntryReply;
-import org.tisonkun.morax.proto.bookie.ReadEntryRequest;
+import com.google.common.util.concurrent.AbstractIdleService;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import java.io.File;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.tisonkun.morax.proto.config.MoraxBookieServerConfig;
 
-public class BookieServer extends BookieServiceGrpc.BookieServiceImplBase {
-    private final Bookie bookie;
+@Slf4j
+public class BookieServer extends AbstractIdleService {
+    private final Server server;
 
-    public BookieServer(MoraxBookieServerConfig serverConfig) {
-        this.bookie = new Bookie(serverConfig);
+    public BookieServer(MoraxBookieServerConfig config) {
+        this.server = ServerBuilder.forPort(10594)
+                .addService(new BookieService(config))
+                .build();
     }
 
     @Override
-    public void addEntry(AddEntryRequest request, StreamObserver<AddEntryReply> responseObserver) {
-        final Entry entry = Entry.fromProtos(request.getEntry());
-        try {
-            bookie.addEntry(entry);
-            responseObserver.onNext(AddEntryReply.newBuilder()
-                    .setLedgerId(entry.getLedgerId())
-                    .setEntryId(entry.getEntryId())
-                    .build());
-            responseObserver.onCompleted();
-        } catch (Exception e) {
-            responseObserver.onError(e);
-        }
+    protected void startUp() throws Exception {
+        this.server.start();
+        log.info("BookieServer started.");
     }
 
     @Override
-    public void readEntry(ReadEntryRequest request, StreamObserver<ReadEntryReply> responseObserver) {
-        final long ledgerId = request.getLedgerId();
-        final long entryId = request.getEntryId();
-        try {
-            final Entry entry = bookie.readEntry(ledgerId, entryId);
-            responseObserver.onNext(
-                    ReadEntryReply.newBuilder().setEntry(entry.toEntryProto()).build());
-            responseObserver.onCompleted();
-        } catch (Exception e) {
-            responseObserver.onError(e);
-        }
+    protected void shutDown() throws Exception {
+        this.server.shutdown().awaitTermination();
+        log.info("BookieServer terminated.");
+    }
+
+    public static void main(String[] args) throws Exception {
+        final MoraxBookieServerConfig config = MoraxBookieServerConfig.builder()
+                .ledgerDirs(List.of(new File("/tmp/morax-bookie")))
+                .build();
+        final BookieServer bookieServer = new BookieServer(config);
+        bookieServer.startUp();
+        bookieServer.shutDown();
     }
 }

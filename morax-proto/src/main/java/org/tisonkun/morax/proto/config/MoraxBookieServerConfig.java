@@ -27,5 +27,6 @@ import lombok.RequiredArgsConstructor;
 @Builder
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class MoraxBookieServerConfig {
+    private final int port;
     private final List<File> ledgerDirs;
 }
