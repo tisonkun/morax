@@ -27,8 +27,8 @@
     <packaging>pom</packaging>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- lib dependencies -->
@@ -38,7 +38,7 @@
         <guava.version>32.1.2-jre</guava.version>
         <jetbrains-annotations.version>24.0.1</jetbrains-annotations.version>
         <junit.version>5.9.2</junit.version>
-        <lombok.version>1.18.26</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <netty.version>4.1.97.Final</netty.version>
         <protobuf3.version>3.24.3</protobuf3.version>
         <protoc3.version>${protobuf3.version}</protoc3.version>
@@ -48,7 +48,7 @@
         <!-- bundled maven plugins -->
         <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
 
-        <!-- community maven plugin -->
+        <!-- community maven plugins -->
         <spotless.version>2.39.0</spotless.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
         <palantir-java-format.version>2.36.0</palantir-java-format.version>

@@ -44,8 +44,8 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: 'zulu'
+          java-version: '21'
       - name: Check code style
         run: ./mvnw spotless:check
 
@@ -58,8 +58,8 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: 'zulu'
+          java-version: '21'
       - name: Maven verify
         run: ./mvnw clean verify
 
