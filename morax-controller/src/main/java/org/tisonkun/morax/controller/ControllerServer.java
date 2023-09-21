@@ -14,39 +14,45 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.bookie;
+package org.tisonkun.morax.controller;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import org.tisonkun.morax.proto.config.MoraxBookieServerConfig;
+import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
 
 @Slf4j
-public class BookieServer extends AbstractIdleService {
+public class ControllerServer extends AbstractIdleService {
     private final Server server;
+    private final Controller controller;
 
-    public BookieServer(MoraxBookieServerConfig config) {
+    public ControllerServer(MoraxControllerServerConfig config) throws IOException {
+        this.controller = new Controller(config);
         this.server = ServerBuilder.forPort(config.getPort())
-                .addService(new BookieService(config))
+                .addService(new ControllerService(this.controller))
                 .build();
     }
 
     @Override
     protected void startUp() throws Exception {
+        this.controller.startUp();
         this.server.start();
-        log.info("BookieServer started.");
+        log.info("ControllerServer started.");
     }
 
     @Override
     protected void shutDown() throws Exception {
+        this.controller.shutDown();
         this.server.shutdown().awaitTermination();
-        log.info("BookieServer terminated.");
+        log.info("ControllerServer terminated.");
     }
 
     public static void main(String[] args) throws Exception {
-        final MoraxBookieServerConfig config = MoraxBookieServerConfig.builder().build();
-        final BookieServer bookieServer = new BookieServer(config);
+        final MoraxControllerServerConfig config =
+                MoraxControllerServerConfig.builder().build();
+        final ControllerServer bookieServer = new ControllerServer(config);
         bookieServer.startUp();
         bookieServer.shutDown();
     }

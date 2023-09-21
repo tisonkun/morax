@@ -32,6 +32,7 @@ import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.util.NetUtils;
+import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
 import org.tisonkun.morax.proto.controller.ListServicesReply;
 import org.tisonkun.morax.proto.controller.ListServicesRequest;
 import org.tisonkun.morax.proto.controller.RegisterServiceReply;
@@ -39,16 +40,17 @@ import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
 import org.tisonkun.morax.proto.controller.ServiceInfoProto;
 import org.tisonkun.morax.proto.controller.ServiceType;
 
-public class ControllerStateManager extends AbstractIdleService {
+public class Controller extends AbstractIdleService {
     private final ClientId localFakeId = ClientId.randomId();
     private final AtomicLong localFakeCallId = new AtomicLong(0);
     private final RaftGroupId raftGroupId;
     private final RaftServer raftServer;
 
-    public ControllerStateManager() throws IOException {
+    public Controller(MoraxControllerServerConfig config) throws IOException {
+        final String address = "127.0.0.1:" + config.getRaftServerPort();
         final RaftPeer peer =
-                RaftPeer.newBuilder().setId("n0").setAddress("127.0.0.1:21096").build();
-        final int port = NetUtils.createSocketAddr(peer.getAddress()).getPort();
+                RaftPeer.newBuilder().setId("n0").setAddress(address).build();
+        final int port = NetUtils.createSocketAddr(address).getPort();
         final RaftProperties properties = new RaftProperties();
         GrpcConfigKeys.Server.setPort(properties, port);
         this.raftGroupId = RaftGroupId.valueOf(new UUID(0, 1));
@@ -97,7 +99,8 @@ public class ControllerStateManager extends AbstractIdleService {
     }
 
     public static void main(String[] args) throws Exception {
-        final ControllerStateManager stateManager = new ControllerStateManager();
+        final Controller stateManager =
+                new Controller(MoraxControllerServerConfig.builder().build());
         try {
             stateManager.startUp();
             Thread.sleep(Duration.ofSeconds(1));

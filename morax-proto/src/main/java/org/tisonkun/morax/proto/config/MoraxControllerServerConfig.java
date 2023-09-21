@@ -16,9 +16,6 @@
 
 package org.tisonkun.morax.proto.config;
 
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
@@ -27,10 +24,10 @@ import lombok.RequiredArgsConstructor;
 @Data
 @Builder
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class MoraxBookieServerConfig {
+public class MoraxControllerServerConfig {
     @Builder.Default
-    private final int port = 10594;
+    private final int port = 10864;
 
     @Builder.Default
-    private final List<File> ledgerDirs = Collections.singletonList(new File("/tmp/morax-bookie"));
+    private final int raftServerPort = 11984;
 }
