@@ -42,6 +42,8 @@
         <netty.version>4.1.97.Final</netty.version>
         <protobuf3.version>3.24.3</protobuf3.version>
         <protoc3.version>${protobuf3.version}</protoc3.version>
+        <ratis.version>2.5.1</ratis.version>
+        <ratis-thirdparty.version>1.0.4</ratis-thirdparty.version>
         <slf4j.version>2.0.7</slf4j.version>
         <tomcat-annontation.version>6.0.53</tomcat-annontation.version>
 
@@ -59,6 +61,7 @@
         <module>morax-bom</module>
         <module>morax-parent</module>
         <module>morax-bookie</module>
+        <module>morax-controller</module>
         <module>morax-proto</module>
     </modules>
 

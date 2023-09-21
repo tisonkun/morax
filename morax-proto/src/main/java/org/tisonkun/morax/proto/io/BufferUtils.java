@@ -17,6 +17,7 @@
 package org.tisonkun.morax.proto.io;
 
 import com.google.protobuf.ByteString;
+import com.google.protobuf.UnsafeByteOperations;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.nio.ByteBuffer;
@@ -27,5 +28,14 @@ public class BufferUtils {
     public static ByteBuf byteStringToByteBuf(ByteString bytes) {
         final ByteBuffer byteBuffer = bytes.asReadOnlyByteBuffer();
         return Unpooled.wrappedBuffer(byteBuffer);
+    }
+
+    public static org.apache.ratis.thirdparty.com.google.protobuf.ByteString byteStringDoShade(ByteString bytes) {
+        return org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations.unsafeWrap(
+                bytes.asReadOnlyByteBuffer());
+    }
+
+    public static ByteString byteStringUndoShade(org.apache.ratis.thirdparty.com.google.protobuf.ByteString bytes) {
+        return UnsafeByteOperations.unsafeWrap(bytes.asReadOnlyByteBuffer());
     }
 }

@@ -58,6 +58,10 @@
             <artifactId>annotations-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.ratis</groupId>
+            <artifactId>ratis-thirdparty-misc</artifactId>
+        </dependency>
 
         <!-- test dependencies -->
         <dependency>

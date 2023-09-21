@@ -15,39 +15,37 @@
  */
 
 syntax = "proto3";
-package morax.bookie;
+package morax.controller;
 
-option java_package = "org.tisonkun.morax.proto.bookie";
+option java_package = "org.tisonkun.morax.proto.controller";
 option java_multiple_files = true;
-option java_outer_classname = 'BookieProtos';
+option java_outer_classname = 'ControllerProtos';
 option java_generate_equals_and_hash = true;
 
-service BookieService {
-  rpc addEntry(AddEntryRequest) returns (AddEntryReply) {}
-  rpc readEntry(ReadEntryRequest) returns (ReadEntryReply) {}
+service Controller {
+  rpc registerService(RegisterServiceRequest) returns (RegisterServiceReply) {}
+  rpc listServices(ListServicesRequest) returns (ListServicesReply) {}
 }
 
-message AddEntryRequest {
-    EntryProto entry = 1;
+message RegisterServiceRequest {
+    ServiceInfoProto serviceInfo = 1;
 }
 
-message AddEntryReply {
-  int64 ledgerId = 1;
-  int64 entryId = 2;
+message RegisterServiceReply {}
+
+message ListServicesRequest {
+  repeated ServiceType serviceType = 1;
 }
 
-message ReadEntryRequest {
-  int64 ledgerId = 1;
-  int64 entryId = 2;
+message ListServicesReply {
+  repeated ServiceInfoProto serviceInfo = 1;
 }
 
-message ReadEntryReply {
-  EntryProto entry = 1;
+enum ServiceType {
+  Bookie = 0;
 }
 
-message EntryProto {
-  int64 ledgerId = 1;
-  int64 entryId = 2;
-  int64 lastConfirmed = 3;
-  bytes payload = 4;
+message ServiceInfoProto {
+  ServiceType type = 1;
+  string target = 2;
 }
