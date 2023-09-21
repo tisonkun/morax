@@ -25,6 +25,7 @@ import org.tisonkun.morax.proto.io.BufferUtils;
 @Data
 public class LocalMessage implements Message {
     private final GeneratedMessageV3 actualMessage;
+
     @Override
     public ByteString getContent() {
         return BufferUtils.byteStringDoShade(actualMessage.toByteString());

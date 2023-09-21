@@ -72,13 +72,15 @@ public class ControllerStateManager extends AbstractIdleService {
     }
 
     public RegisterServiceReply registerService(RegisterServiceRequest request) throws IOException {
-        final RaftClientReply reply = this.raftServer.submitClientRequest(buildRawRequest(new LocalMessage(request), RaftClientRequest.writeRequestType()));
+        final RaftClientReply reply = this.raftServer.submitClientRequest(
+                buildRawRequest(new LocalMessage(request), RaftClientRequest.writeRequestType()));
         final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
         return (RegisterServiceReply) replyMessage.getActualMessage();
     }
 
     public ListServicesReply listServices(ListServicesRequest request) throws IOException {
-        final RaftClientReply reply = this.raftServer.submitClientRequest(buildRawRequest(new LocalMessage(request), RaftClientRequest.readRequestType()));
+        final RaftClientReply reply = this.raftServer.submitClientRequest(
+                buildRawRequest(new LocalMessage(request), RaftClientRequest.readRequestType()));
         final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
         return (ListServicesReply) replyMessage.getActualMessage();
     }
@@ -100,7 +102,9 @@ public class ControllerStateManager extends AbstractIdleService {
             stateManager.startUp();
             Thread.sleep(Duration.ofSeconds(1));
             {
-                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder().addServiceType(ServiceType.Bookie).build());
+                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder()
+                        .addServiceType(ServiceType.Bookie)
+                        .build());
                 System.out.println("listServicesReply=" + listServicesReply);
             }
             {
@@ -108,11 +112,16 @@ public class ControllerStateManager extends AbstractIdleService {
                         .setType(ServiceType.Bookie)
                         .setTarget("localhost:8080")
                         .build();
-                final RegisterServiceReply registerServiceReply = stateManager.registerService(RegisterServiceRequest.newBuilder().setServiceInfo(serviceInfoProto).build());
+                final RegisterServiceReply registerServiceReply =
+                        stateManager.registerService(RegisterServiceRequest.newBuilder()
+                                .setServiceInfo(serviceInfoProto)
+                                .build());
                 System.out.println("registerServiceReply=" + registerServiceReply);
             }
             {
-                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder().addServiceType(ServiceType.Bookie).build());
+                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder()
+                        .addServiceType(ServiceType.Bookie)
+                        .build());
                 System.out.println("listServicesReply=" + listServicesReply);
             }
         } finally {

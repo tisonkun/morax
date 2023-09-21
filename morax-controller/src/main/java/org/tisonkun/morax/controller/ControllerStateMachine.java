@@ -58,7 +58,8 @@ public class ControllerStateMachine extends BaseStateMachine {
         final List<ServiceType> serviceTypes = listServicesRequest.getServiceTypeList();
         final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
         for (ServiceType serviceType : serviceTypes) {
-            final Collection<ServiceInfoProto> serviceInfos = services.getOrDefault(serviceType, Collections.emptySet());
+            final Collection<ServiceInfoProto> serviceInfos =
+                    services.getOrDefault(serviceType, Collections.emptySet());
             reply.addAllServiceInfo(serviceInfos);
         }
         return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
@@ -67,12 +68,14 @@ public class ControllerStateMachine extends BaseStateMachine {
     @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
         final RegisterServiceRequest registerServiceRequest;
-        if (trx.getClientRequest() != null && trx.getClientRequest().getMessage() instanceof LocalMessage localMessage) {
+        if (trx.getClientRequest() != null
+                && trx.getClientRequest().getMessage() instanceof LocalMessage localMessage) {
             final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
             registerServiceRequest = (RegisterServiceRequest) generatedMessage;
         } else {
             try {
-                final ByteString bytes = BufferUtils.byteStringUndoShade(trx.getStateMachineLogEntry().getLogData());
+                final ByteString bytes = BufferUtils.byteStringUndoShade(
+                        trx.getStateMachineLogEntry().getLogData());
                 registerServiceRequest = RegisterServiceRequest.parseFrom(bytes);
             } catch (InvalidProtocolBufferException e) {
                 return CompletableFuture.failedFuture(e);
