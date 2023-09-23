@@ -18,7 +18,6 @@ package org.tisonkun.morax.controller;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.ratis.conf.RaftProperties;
@@ -30,6 +29,7 @@ import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
+import org.apache.ratis.server.DivisionInfo;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.util.NetUtils;
 import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
@@ -66,6 +66,15 @@ public class Controller extends AbstractIdleService {
     @Override
     protected void startUp() throws Exception {
         this.raftServer.start();
+        waitUtilLeaderReady();
+    }
+
+    // TODO(*): move to writes and linearized reads when we have a multi nodes cluster.
+    private void waitUtilLeaderReady() throws IOException {
+        final DivisionInfo divisionInfo = raftServer.getDivision(raftGroupId).getInfo();
+        while (!divisionInfo.isLeaderReady()) {
+            Thread.onSpinWait();
+        }
     }
 
     @Override
@@ -103,7 +112,6 @@ public class Controller extends AbstractIdleService {
                 new Controller(MoraxControllerServerConfig.builder().build());
         try {
             stateManager.startUp();
-            Thread.sleep(Duration.ofSeconds(1));
             {
                 final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder()
                         .addServiceType(ServiceType.Bookie)
