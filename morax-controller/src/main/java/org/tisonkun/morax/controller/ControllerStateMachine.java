@@ -28,8 +28,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import org.apache.ratis.protocol.Message;
-import org.apache.ratis.protocol.RaftGroupMemberId;
-import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
 import org.tisonkun.morax.proto.controller.ListServicesReply;
@@ -42,11 +40,6 @@ import org.tisonkun.morax.proto.io.BufferUtils;
 
 public class ControllerStateMachine extends BaseStateMachine {
     private final Map<ServiceType, Collection<ServiceInfoProto>> services = new ConcurrentHashMap<>();
-
-    @Override
-    public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId newLeaderId) {
-        super.notifyLeaderChanged(groupMemberId, newLeaderId);
-    }
 
     @Override
     public CompletableFuture<Message> query(Message request) {
