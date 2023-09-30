@@ -37,8 +37,6 @@ import org.tisonkun.morax.proto.exception.ExceptionUtils;
 @Slf4j
 public class Ledger {
     private static final String LOG_FILE_SUFFIX = ".log";
-
-    private final EntryPosIndices posIndices = new EntryPosIndices();
     private final Cache<Integer, EntryLogReader> entryLogReaderCache = CacheBuilder.newBuilder()
             .concurrencyLevel(1) // important to avoid too aggressive eviction
             .build();
@@ -46,6 +44,7 @@ public class Ledger {
     private final long ledgerId;
     private final Path ledgerDir;
     private final EntryLogIds logIds;
+    private final EntryPosIndices entryPosIndices;
     private final Executor writeExecutor;
 
     private EntryLogWriter entryLogWriter;
@@ -54,6 +53,8 @@ public class Ledger {
         this.ledgerId = ledgerId;
         this.ledgerDir = ledgerDir;
         this.logIds = logIds;
+        // TODO(*) investigate dirs layout
+        this.entryPosIndices = new EntryPosIndices(ledgerDir);
         this.writeExecutor = writeExecutor;
     }
 
@@ -65,11 +66,11 @@ public class Ledger {
         }
         final int logId = entryLogWriter.logId();
         final long offset = entryLogWriter.writeDelimitedEntry(entry.toBytes());
-        posIndices.addPosition(ledgerId, entry.getEntryId(), logId, offset);
+        entryPosIndices.addPosition(ledgerId, entry.getEntryId(), logId, offset);
     }
 
     public Entry readEntry(long entryId) throws IOException {
-        final EntryLocation location = posIndices.findPosition(ledgerId, entryId);
+        final EntryLocation location = entryPosIndices.findPosition(ledgerId, entryId);
         if (location == null) {
             return null;
         }

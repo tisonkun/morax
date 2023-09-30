@@ -16,31 +16,43 @@
 
 package org.tisonkun.morax.bookie.storage;
 
-import static org.tisonkun.morax.proto.exception.ExceptionMessageBuilder.exMsg;
-import com.google.common.base.Preconditions;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import org.apache.commons.lang3.tuple.Pair;
+import java.nio.file.Path;
+import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
+import org.tisonkun.morax.proto.bookie.EntryId;
 import org.tisonkun.morax.proto.bookie.EntryLocation;
+import org.tisonkun.morax.proto.exception.ExceptionUtils;
 
-// TODO(*): replace with a (RocksDB-based) index engine.
 public class EntryPosIndices {
-    /**
-     * (ledgerId, EntryId) -> (logId, position)
-     */
-    private final ConcurrentMap<Pair<Long, Long>, EntryLocation> positions = new ConcurrentHashMap<>();
+    // TODO(*) support checkpoint
+    private final RocksDB db;
+
+    public EntryPosIndices(Path dbPath) {
+        try {
+            this.db = RocksDB.open(dbPath.toString());
+        } catch (RocksDBException e) {
+            throw ExceptionUtils.asUncheckedIOException(e);
+        }
+    }
 
     public void addPosition(long ledgerId, long entryId, int logId, long position) {
-        final Pair<Long, Long> key = Pair.of(ledgerId, entryId);
+        final EntryId key = new EntryId(ledgerId, entryId);
         final EntryLocation value = new EntryLocation(logId, position);
-        final EntryLocation prev = positions.putIfAbsent(key, value);
-        Preconditions.checkState(
-                prev == null,
-                exMsg("Conflict position").kv("key", key).kv("value", value).toString());
+        try {
+            db.put(key.toBytes(), value.toBytes());
+        } catch (RocksDBException e) {
+            throw ExceptionUtils.asUncheckedIOException(e);
+        }
     }
 
     public EntryLocation findPosition(long ledgerId, long entryId) {
-        final Pair<Long, Long> key = Pair.of(ledgerId, entryId);
-        return positions.get(key);
+        final EntryId key = new EntryId(ledgerId, entryId);
+        final byte[] value;
+        try {
+            value = db.get(key.toBytes());
+        } catch (RocksDBException e) {
+            throw ExceptionUtils.asUncheckedIOException(e);
+        }
+        return EntryLocation.fromBytes(value);
     }
 }

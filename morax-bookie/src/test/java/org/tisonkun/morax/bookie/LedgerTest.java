@@ -19,7 +19,6 @@ package org.tisonkun.morax.bookie;
 import static org.assertj.core.api.Assertions.assertThat;
 import io.netty.buffer.Unpooled;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -30,20 +29,23 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.tisonkun.morax.bookie.storage.EntryLogIds;
 import org.tisonkun.morax.bookie.storage.LedgerDirs;
-import org.tisonkun.morax.proto.bookie.DefaultEntry;
 import org.tisonkun.morax.proto.bookie.Entry;
 
 class LedgerTest {
+
+    @TempDir
+    private Path tempDir;
+
     @Test
-    void testAddAndGetEntry(@TempDir Path tempDir) throws IOException {
+    public void testAddAndGetEntry() throws Exception {
         final LedgerDirs ledgerDirs = new LedgerDirs(Collections.singletonList(tempDir.toFile()));
         final EntryLogIds logIds = new EntryLogIds(ledgerDirs);
         final long ledgerId = 1;
         final Executor writeExecutor = Executors.newSingleThreadExecutor(new DefaultThreadFactory("EntryLogWrite"));
         final Ledger ledger = new Ledger(ledgerId, tempDir, logIds, writeExecutor);
         final Entry[] entries = new Entry[] {
-            new DefaultEntry(ledgerId, 1, 1, Unpooled.copiedBuffer("testAddAndGetEntry-1", StandardCharsets.UTF_8)),
-            new DefaultEntry(ledgerId, 2, 2, Unpooled.copiedBuffer("testAddAndGetEntry-2", StandardCharsets.UTF_8)),
+            new Entry(ledgerId, 1, 1, Unpooled.copiedBuffer("testAddAndGetEntry-1", StandardCharsets.UTF_8)),
+            new Entry(ledgerId, 2, 2, Unpooled.copiedBuffer("testAddAndGetEntry-2", StandardCharsets.UTF_8)),
         };
 
         for (Entry entry : entries) {

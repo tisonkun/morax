@@ -18,19 +18,12 @@ package org.tisonkun.morax.proto.bookie;
 
 import java.nio.ByteBuffer;
 
-public record EntryLocation(int logId, long position) {
+public record EntryId(long ledgerId, long entryId) {
     public byte[] toBytes() {
-        final byte[] bytes = new byte[Integer.BYTES + Long.BYTES];
+        final byte[] bytes = new byte[Long.BYTES + Long.BYTES];
         final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        buffer.putInt(logId);
-        buffer.putLong(position);
+        buffer.putLong(ledgerId);
+        buffer.putLong(entryId);
         return bytes;
-    }
-
-    public static EntryLocation fromBytes(byte[] bytes) {
-        final ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        final int logId = buffer.getInt();
-        final long position = buffer.getLong();
-        return new EntryLocation(logId, position);
     }
 }

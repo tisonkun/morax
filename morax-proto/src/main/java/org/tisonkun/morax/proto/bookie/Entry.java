@@ -16,55 +16,93 @@
 
 package org.tisonkun.morax.proto.bookie;
 
+import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import java.nio.charset.StandardCharsets;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.tisonkun.morax.proto.io.BufferUtils;
 
-public interface Entry {
+@Data
+public final class Entry {
     /**
-     * @return the ledger ID of this entry.
+     * The ledger ID of this entry.
      */
-    long getLedgerId();
+    private final long ledgerId;
 
     /**
-     * Non-negative results denote normal entries.
-     *
-     * @return the entry ID of this entry.
+     * The entry ID of this entry; non-negative results denote normal entries.
      */
-    long getEntryId();
+    private final long entryId;
 
     /**
-     * @return last confirmed associated with this entry; {@code -1} if not applicable.
+     * Last confirmed associated with this entry; {@code -1} if not applicable.
      */
-    long getLastConfirmed();
+    private final long lastConfirmed;
 
     /**
-     * @return entry payload; {@code null} if not applicable.
+     * Entry payload; {@code null} if not applicable.
      */
-    ByteBuf getPayload();
+    private final ByteBuf payload;
+
+    @EqualsAndHashCode.Exclude
+    private transient volatile ByteBuf cachedBytes;
 
     /**
      * Serialize this entry to bytes.
      */
-    ByteBuf toBytes();
+    public ByteBuf toBytes() {
+        return cachedBytes();
+    }
 
     /**
      * @return {@link EntryProto} that is logically identical to this entry.
      */
-    EntryProto toEntryProto();
+    public EntryProto toEntryProto() {
+        return EntryProto.newBuilder()
+                .setLedgerId(ledgerId)
+                .setEntryId(entryId)
+                .setLastConfirmed(lastConfirmed)
+                .setPayload(ByteString.copyFrom(payload.nioBuffer()))
+                .build();
+    }
 
-    static Entry fromBytes(ByteBuf entry) {
+    private ByteBuf cachedBytes() {
+        if (cachedBytes != null) {
+            return cachedBytes;
+        }
+        final ByteBuf result = Unpooled.buffer(8 + 8 + 8 + payload.readableBytes());
+        result.writeLong(ledgerId);
+        result.writeLong(entryId);
+        result.writeLong(lastConfirmed);
+        result.writeBytes(payload, payload.readerIndex(), payload.readableBytes());
+        cachedBytes = result;
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Entry{" + "ledgerId="
+                + ledgerId + ", entryId="
+                + entryId + ", lastConfirmed="
+                + lastConfirmed + ", payload="
+                + payload.toString(StandardCharsets.UTF_8) + '}';
+    }
+
+    public static Entry fromBytes(ByteBuf entry) {
         final ByteBuf payload = entry.duplicate();
         final long ledgerId = payload.readLong();
         final long entryId = payload.readLong();
         final long lastConfirmed = payload.readLong();
-        return new DefaultEntry(ledgerId, entryId, lastConfirmed, payload);
+        return new Entry(ledgerId, entryId, lastConfirmed, payload);
     }
 
-    static Entry fromProtos(EntryProto entryProto) {
+    public static Entry fromProtos(EntryProto entryProto) {
         final long ledgerId = entryProto.getLedgerId();
         final long entryId = entryProto.getEntryId();
         final long lastConfirmed = entryProto.getLastConfirmed();
         final ByteBuf payload = BufferUtils.byteStringToByteBuf(entryProto.getPayload());
-        return new DefaultEntry(ledgerId, entryId, lastConfirmed, payload);
+        return new Entry(ledgerId, entryId, lastConfirmed, payload);
     }
 }
