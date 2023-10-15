@@ -21,22 +21,23 @@ import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
-import lombok.Data;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
+import org.jooq.Converter;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.jooq.impl.EnumConverter;
+import org.jooq.impl.SQLDataType;
 import org.tisonkun.morax.proto.controller.ListServicesReply;
 import org.tisonkun.morax.proto.controller.ListServicesRequest;
 import org.tisonkun.morax.proto.controller.RegisterServiceReply;
@@ -54,22 +55,14 @@ public class ControllerStateMachine extends BaseStateMachine {
     public void initialize(RaftServer raftServer, RaftGroupId raftGroupId, RaftStorage storage) throws IOException {
         super.initialize(raftServer, raftGroupId, storage);
         dslContext = DSL.using("jdbc:sqlite:sample.db");
-    }
-
-    @Data
-    public static class KeyValue {
-        private int key;
-        private int value;
+        dslContext.createTableIfNotExists("services")
+                .column("type", SQLDataType.INTEGER)
+                .column("target", SQLDataType.VARCHAR)
+                .execute();
     }
 
     @Override
     public CompletableFuture<Message> query(Message request) {
-        final var result = dslContext.select(
-                DSL.inline(42).as("key"),
-                DSL.inline(21).as("value")
-        ).fetch().into(KeyValue.class);
-        System.out.println("result = " + result);
-
         final ListServicesRequest listServicesRequest;
         if (request instanceof LocalMessage localMessage) {
             final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
@@ -85,8 +78,18 @@ public class ControllerStateMachine extends BaseStateMachine {
         final List<ServiceType> serviceTypes = listServicesRequest.getServiceTypeList();
         final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
         for (ServiceType serviceType : serviceTypes) {
-            final Collection<ServiceInfoProto> serviceInfos =
-                    services.getOrDefault(serviceType, Collections.emptySet());
+            Converter<Integer, ServiceType> converter = new EnumConverter<>(Integer.class, ServiceType.class);
+            final Collection<ServiceInfoProto> serviceInfos = dslContext.select(
+                            DSL.field("type", SQLDataType.INTEGER).convert(converter),
+                            DSL.field("target", SQLDataType.VARCHAR)
+                    )
+                    .from("services")
+                    .where(DSL.field("type").eq(serviceType.ordinal()))
+                    .fetch()
+                    .map(record -> ServiceInfoProto.newBuilder()
+                            .setType(record.value1())
+                            .setTarget(record.value2())
+                            .build());
             reply.addAllServiceInfo(serviceInfos);
         }
         return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
@@ -110,6 +113,15 @@ public class ControllerStateMachine extends BaseStateMachine {
         }
         final ServiceInfoProto serviceInfo = registerServiceRequest.getServiceInfo();
         final ServiceType serviceType = serviceInfo.getType();
+        dslContext.insertInto(DSL.table("services"))
+                .select(DSL.select(
+                        DSL.inline(serviceType.ordinal()).as("type"),
+                        DSL.inline(serviceInfo.getTarget()).as("target")
+                ))
+                .onDuplicateKeyUpdate()
+                .set(DSL.field("target"), serviceInfo.getTarget())
+                .execute();
+
         final Collection<ServiceInfoProto> serviceInfoProtos = services.computeIfAbsent(
                 serviceType,
                 ignore -> new ConcurrentSkipListSet<>(
