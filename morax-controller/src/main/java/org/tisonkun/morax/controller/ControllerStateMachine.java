@@ -19,14 +19,13 @@ package org.tisonkun.morax.controller;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
+import javax.annotation.concurrent.GuardedBy;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
@@ -39,56 +38,65 @@ import org.tisonkun.morax.proto.controller.ServiceType;
 import org.tisonkun.morax.proto.io.BufferUtils;
 
 public class ControllerStateMachine extends BaseStateMachine {
-    private final Map<ServiceType, Collection<ServiceInfoProto>> services = new ConcurrentHashMap<>();
+
+    private final ReentrantReadWriteLock servicesLock = new ReentrantReadWriteLock();
+
+    @GuardedBy("servicesLock")
+    private final Collection<ServiceInfoProto> services = new ArrayList<>();
 
     @Override
     public CompletableFuture<Message> query(Message request) {
-        final ListServicesRequest listServicesRequest;
-        if (request instanceof LocalMessage localMessage) {
-            final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
-            listServicesRequest = (ListServicesRequest) generatedMessage;
-        } else {
-            try {
-                final ByteString bytes = BufferUtils.byteStringUndoShade(request.getContent());
-                listServicesRequest = ListServicesRequest.parseFrom(bytes);
-            } catch (InvalidProtocolBufferException e) {
-                return CompletableFuture.failedFuture(e);
+        servicesLock.readLock().lock();
+        try {
+            final ListServicesRequest listServicesRequest;
+            if (request instanceof LocalMessage localMessage) {
+                final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
+                listServicesRequest = (ListServicesRequest) generatedMessage;
+            } else {
+                try {
+                    final ByteString bytes = BufferUtils.byteStringUndoShade(request.getContent());
+                    listServicesRequest = ListServicesRequest.parseFrom(bytes);
+                } catch (InvalidProtocolBufferException e) {
+                    return CompletableFuture.failedFuture(e);
+                }
             }
+            final List<ServiceType> serviceTypes = listServicesRequest.getServiceTypeList();
+            final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
+            for (ServiceType serviceType : serviceTypes) {
+                final Collection<ServiceInfoProto> serviceInfos = services.stream()
+                        .filter(service -> service.getType().equals(serviceType))
+                        .collect(Collectors.toSet());
+                reply.addAllServiceInfo(serviceInfos);
+            }
+            return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
+        } finally {
+            servicesLock.readLock().unlock();
         }
-        final List<ServiceType> serviceTypes = listServicesRequest.getServiceTypeList();
-        final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
-        for (ServiceType serviceType : serviceTypes) {
-            final Collection<ServiceInfoProto> serviceInfos =
-                    services.getOrDefault(serviceType, Collections.emptySet());
-            reply.addAllServiceInfo(serviceInfos);
-        }
-        return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
     }
 
     @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
-        final RegisterServiceRequest registerServiceRequest;
-        if (trx.getClientRequest() != null
-                && trx.getClientRequest().getMessage() instanceof LocalMessage localMessage) {
-            final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
-            registerServiceRequest = (RegisterServiceRequest) generatedMessage;
-        } else {
-            try {
-                final ByteString bytes = BufferUtils.byteStringUndoShade(
-                        trx.getStateMachineLogEntry().getLogData());
-                registerServiceRequest = RegisterServiceRequest.parseFrom(bytes);
-            } catch (InvalidProtocolBufferException e) {
-                return CompletableFuture.failedFuture(e);
+        servicesLock.writeLock().lock();
+        try {
+            final RegisterServiceRequest registerServiceRequest;
+            if (trx.getClientRequest() != null
+                    && trx.getClientRequest().getMessage() instanceof LocalMessage localMessage) {
+                final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
+                registerServiceRequest = (RegisterServiceRequest) generatedMessage;
+            } else {
+                try {
+                    final ByteString bytes = BufferUtils.byteStringUndoShade(
+                            trx.getStateMachineLogEntry().getLogData());
+                    registerServiceRequest = RegisterServiceRequest.parseFrom(bytes);
+                } catch (InvalidProtocolBufferException e) {
+                    return CompletableFuture.failedFuture(e);
+                }
             }
+            services.add(registerServiceRequest.getServiceInfo());
+            final RegisterServiceReply.Builder reply = RegisterServiceReply.newBuilder();
+            return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
+        } finally {
+            servicesLock.writeLock().unlock();
         }
-        final ServiceInfoProto serviceInfo = registerServiceRequest.getServiceInfo();
-        final ServiceType serviceType = serviceInfo.getType();
-        final Collection<ServiceInfoProto> serviceInfoProtos = services.computeIfAbsent(
-                serviceType,
-                ignore -> new ConcurrentSkipListSet<>(
-                        Comparator.comparing(ServiceInfoProto::getTarget).thenComparing(ServiceInfoProto::getType)));
-        serviceInfoProtos.add(serviceInfo);
-        final RegisterServiceReply.Builder reply = RegisterServiceReply.newBuilder();
-        return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
     }
 }
