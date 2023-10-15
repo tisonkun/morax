@@ -19,6 +19,7 @@ package org.tisonkun.morax.controller;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -27,9 +28,15 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import lombok.Data;
 import org.apache.ratis.protocol.Message;
+import org.apache.ratis.protocol.RaftGroupId;
+import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
+import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.tisonkun.morax.proto.controller.ListServicesReply;
 import org.tisonkun.morax.proto.controller.ListServicesRequest;
 import org.tisonkun.morax.proto.controller.RegisterServiceReply;
@@ -41,8 +48,28 @@ import org.tisonkun.morax.proto.io.BufferUtils;
 public class ControllerStateMachine extends BaseStateMachine {
     private final Map<ServiceType, Collection<ServiceInfoProto>> services = new ConcurrentHashMap<>();
 
+    private DSLContext dslContext;
+
+    @Override
+    public void initialize(RaftServer raftServer, RaftGroupId raftGroupId, RaftStorage storage) throws IOException {
+        super.initialize(raftServer, raftGroupId, storage);
+        dslContext = DSL.using("jdbc:sqlite:sample.db");
+    }
+
+    @Data
+    public static class KeyValue {
+        private int key;
+        private int value;
+    }
+
     @Override
     public CompletableFuture<Message> query(Message request) {
+        final var result = dslContext.select(
+                DSL.inline(42).as("key"),
+                DSL.inline(21).as("value")
+        ).fetch().into(KeyValue.class);
+        System.out.println("result = " + result);
+
         final ListServicesRequest listServicesRequest;
         if (request instanceof LocalMessage localMessage) {
             final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
