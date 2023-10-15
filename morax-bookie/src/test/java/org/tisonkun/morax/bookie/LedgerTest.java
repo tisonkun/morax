@@ -28,6 +28,8 @@ import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.tisonkun.morax.bookie.storage.EntryLogIds;
+import org.tisonkun.morax.bookie.storage.EntryLogger;
+import org.tisonkun.morax.bookie.storage.EntryPosIndices;
 import org.tisonkun.morax.bookie.storage.LedgerDirs;
 import org.tisonkun.morax.proto.bookie.Entry;
 
@@ -42,7 +44,9 @@ class LedgerTest {
         final EntryLogIds logIds = new EntryLogIds(ledgerDirs);
         final long ledgerId = 1;
         final Executor writeExecutor = Executors.newSingleThreadExecutor(new DefaultThreadFactory("EntryLogWrite"));
-        final Ledger ledger = new Ledger(ledgerId, tempDir, logIds, writeExecutor);
+        final EntryLogger entryLogger = new EntryLogger(tempDir, logIds, writeExecutor);
+        final EntryPosIndices entryPosIndices = new EntryPosIndices(tempDir);
+        final Ledger ledger = new Ledger(ledgerId, entryLogger, entryPosIndices);
         final Entry[] entries = new Entry[] {
             new Entry(ledgerId, 1, 1, Unpooled.copiedBuffer("testAddAndGetEntry-1", StandardCharsets.UTF_8)),
             new Entry(ledgerId, 2, 2, Unpooled.copiedBuffer("testAddAndGetEntry-2", StandardCharsets.UTF_8)),
@@ -51,7 +55,6 @@ class LedgerTest {
         for (Entry entry : entries) {
             ledger.addEntry(entry);
         }
-        ledger.flush();
 
         for (int i = 0; i < entries.length; i++) {
             final int idx = entries.length - 1 - i;

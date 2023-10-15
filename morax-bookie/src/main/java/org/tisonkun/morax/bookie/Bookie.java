@@ -25,6 +25,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.tisonkun.morax.bookie.storage.EntryLogIds;
+import org.tisonkun.morax.bookie.storage.EntryLogger;
+import org.tisonkun.morax.bookie.storage.EntryPosIndices;
 import org.tisonkun.morax.bookie.storage.LedgerDirs;
 import org.tisonkun.morax.proto.bookie.Entry;
 import org.tisonkun.morax.proto.config.MoraxBookieServerConfig;
@@ -55,7 +57,9 @@ public class Bookie {
             final EntryLogIds logIds = new EntryLogIds(ledgerDirs);
             final Executor writeExecutor =
                     Executors.newSingleThreadExecutor(new DefaultThreadFactory("EntryLoggerWrite"));
-            return new Ledger(ledgerId, ledgerDir, logIds, writeExecutor);
+            final EntryLogger entryLogger = new EntryLogger(ledgerDir, logIds, writeExecutor);
+            final EntryPosIndices entryPosIndices = new EntryPosIndices(ledgerDir);
+            return new Ledger(ledgerId, entryLogger, entryPosIndices);
         });
     }
 }
