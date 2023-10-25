@@ -66,11 +66,11 @@ public class Controller extends AbstractIdleService {
     @Override
     protected void startUp() throws Exception {
         this.raftServer.start();
-        waitUtilLeaderReady();
+        waitUntilLeaderReady();
     }
 
     // TODO(*): move to writes and linearized reads when we have a multi nodes cluster.
-    private void waitUtilLeaderReady() throws IOException {
+    private void waitUntilLeaderReady() throws IOException {
         final DivisionInfo divisionInfo = raftServer.getDivision(raftGroupId).getInfo();
         while (!divisionInfo.isLeaderReady()) {
             Thread.onSpinWait();
