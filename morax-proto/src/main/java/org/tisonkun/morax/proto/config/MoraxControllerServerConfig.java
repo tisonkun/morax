@@ -16,18 +16,17 @@
 
 package org.tisonkun.morax.proto.config;
 
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
 @Builder
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Jacksonized
 public class MoraxControllerServerConfig {
     @Builder.Default
-    private final int port = 10864;
+    private int port = 10864;
 
     @Builder.Default
-    private final int raftServerPort = 11984;
+    private int raftServerPort = 11984;
 }

@@ -47,7 +47,7 @@ public class Controller extends AbstractIdleService {
     private final RaftServer raftServer;
 
     public Controller(MoraxControllerServerConfig config) throws IOException {
-        final String address = "127.0.0.1:" + config.getRaftServerPort();
+        final String address = "" + config.getRaftServerPort();
         final RaftPeer peer =
                 RaftPeer.newBuilder().setId("n0").setAddress(address).build();
         final int port = NetUtils.createSocketAddr(address).getPort();

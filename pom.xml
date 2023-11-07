@@ -36,6 +36,7 @@
         <commons-lang3.version>3.13.0</commons-lang3.version>
         <grpc.version>1.58.0</grpc.version>
         <guava.version>32.1.2-jre</guava.version>
+        <jackson.version>2.15.2</jackson.version>
         <jetbrains-annotations.version>24.0.1</jetbrains-annotations.version>
         <junit.version>5.9.2</junit.version>
         <lombok.version>1.18.30</lombok.version>
@@ -64,6 +65,7 @@
         <module>morax-bookie</module>
         <module>morax-controller</module>
         <module>morax-proto</module>
+        <module>morax-ctl</module>
     </modules>
 
     <build>
