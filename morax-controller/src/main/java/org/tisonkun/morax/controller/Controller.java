@@ -17,8 +17,12 @@
 package org.tisonkun.morax.controller;
 
 import com.google.common.util.concurrent.AbstractIdleService;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
 import java.io.IOException;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
@@ -33,6 +37,7 @@ import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.util.NetUtils;
 import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
+import org.tisonkun.morax.proto.controller.ControllerGrpc;
 import org.tisonkun.morax.proto.controller.ListServicesReply;
 import org.tisonkun.morax.proto.controller.ListServicesRequest;
 import org.tisonkun.morax.proto.controller.RegisterServiceReply;
@@ -40,10 +45,12 @@ import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
 import org.tisonkun.morax.proto.controller.ServiceInfoProto;
 import org.tisonkun.morax.proto.controller.ServiceType;
 
+@Slf4j
 public class Controller extends AbstractIdleService {
     private final RaftGroupId raftGroupId;
     private final RaftServer raftServer;
     private final RaftClient raftClient;
+    private final Server grpcServer;
 
     public Controller(MoraxControllerServerConfig config) throws IOException {
         final String address = "127.0.0.1:" + config.getRaftServerPort();
@@ -69,16 +76,24 @@ public class Controller extends AbstractIdleService {
                 .setRaftGroup(group)
                 .setClientRpc(rpc)
                 .build();
+
+        this.grpcServer = ServerBuilder.forPort(config.getPort())
+                .addService(new GrpcServiceAdapter())
+                .build();
     }
 
     @Override
     protected void startUp() throws Exception {
         this.raftServer.start();
+        final int port = this.grpcServer.start().getPort();
+        log.info("Controller has been ready at port {}.", port);
     }
 
     @Override
     protected void shutDown() throws Exception {
+        this.grpcServer.shutdown().awaitTermination();
         this.raftServer.close();
+        log.info("Controller has been shutdown.");
     }
 
     public RegisterServiceReply registerService(RegisterServiceRequest request) throws IOException {
@@ -121,6 +136,30 @@ public class Controller extends AbstractIdleService {
             }
         } finally {
             stateManager.shutDown();
+        }
+    }
+
+    private class GrpcServiceAdapter extends ControllerGrpc.ControllerImplBase {
+        @Override
+        public void listServices(ListServicesRequest request, StreamObserver<ListServicesReply> responseObserver) {
+            try {
+                final ListServicesReply reply = Controller.this.listServices(request);
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            } catch (Exception e) {
+                responseObserver.onError(e);
+            }
+        }
+
+        @Override
+        public void registerService(RegisterServiceRequest request, StreamObserver<RegisterServiceReply> responseObserver) {
+            try {
+                final RegisterServiceReply reply = Controller.this.registerService(request);
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            } catch (Exception e) {
+                responseObserver.onError(e);
+            }
         }
     }
 }
