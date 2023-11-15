@@ -19,17 +19,17 @@ package org.tisonkun.morax.controller;
 import com.google.common.util.concurrent.AbstractIdleService;
 import java.io.IOException;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import org.apache.ratis.client.RaftClient;
+import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.grpc.GrpcConfigKeys;
+import org.apache.ratis.grpc.GrpcFactory;
+import org.apache.ratis.grpc.client.GrpcClientRpc;
 import org.apache.ratis.protocol.ClientId;
-import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
-import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
-import org.apache.ratis.server.DivisionInfo;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.util.NetUtils;
 import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
@@ -41,18 +41,18 @@ import org.tisonkun.morax.proto.controller.ServiceInfoProto;
 import org.tisonkun.morax.proto.controller.ServiceType;
 
 public class Controller extends AbstractIdleService {
-    private final ClientId localFakeId = ClientId.randomId();
-    private final AtomicLong localFakeCallId = new AtomicLong(0);
     private final RaftGroupId raftGroupId;
     private final RaftServer raftServer;
+    private final RaftClient raftClient;
 
     public Controller(MoraxControllerServerConfig config) throws IOException {
-        final String address = "" + config.getRaftServerPort();
+        final String address = "127.0.0.1:" + config.getRaftServerPort();
         final RaftPeer peer =
                 RaftPeer.newBuilder().setId("n0").setAddress(address).build();
         final int port = NetUtils.createSocketAddr(address).getPort();
         final RaftProperties properties = new RaftProperties();
         GrpcConfigKeys.Server.setPort(properties, port);
+
         this.raftGroupId = RaftGroupId.valueOf(new UUID(0, 1));
         final RaftGroup group = RaftGroup.valueOf(this.raftGroupId, peer);
         this.raftServer = RaftServer.newBuilder()
@@ -61,20 +61,19 @@ public class Controller extends AbstractIdleService {
                 .setServerId(peer.getId())
                 .setStateMachine(new ControllerStateMachine())
                 .build();
+
+        final GrpcClientRpc rpc =
+                new GrpcFactory(new Parameters()).newRaftClientRpc(ClientId.randomId(), properties);
+        this.raftClient = RaftClient.newBuilder()
+                .setProperties(properties)
+                .setRaftGroup(group)
+                .setClientRpc(rpc)
+                .build();
     }
 
     @Override
     protected void startUp() throws Exception {
         this.raftServer.start();
-        waitUntilLeaderReady();
-    }
-
-    // TODO(*): move to writes and linearized reads when we have a multi nodes cluster.
-    private void waitUntilLeaderReady() throws IOException {
-        final DivisionInfo divisionInfo = raftServer.getDivision(raftGroupId).getInfo();
-        while (!divisionInfo.isLeaderReady()) {
-            Thread.onSpinWait();
-        }
     }
 
     @Override
@@ -83,28 +82,13 @@ public class Controller extends AbstractIdleService {
     }
 
     public RegisterServiceReply registerService(RegisterServiceRequest request) throws IOException {
-        final RaftClientReply reply = this.raftServer.submitClientRequest(
-                buildRawRequest(new LocalMessage(request), RaftClientRequest.writeRequestType()));
-        final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
-        return (RegisterServiceReply) replyMessage.message();
+        final RaftClientReply reply = this.raftClient.io().send(new LocalMessage(request));
+        return RegisterServiceReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
     public ListServicesReply listServices(ListServicesRequest request) throws IOException {
-        final RaftClientReply reply = this.raftServer.submitClientRequest(
-                buildRawRequest(new LocalMessage(request), RaftClientRequest.readRequestType()));
-        final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
-        return (ListServicesReply) replyMessage.message();
-    }
-
-    private RaftClientRequest buildRawRequest(Message message, RaftClientRequest.Type type) {
-        return RaftClientRequest.newBuilder()
-                .setServerId(raftServer.getId())
-                .setClientId(localFakeId)
-                .setCallId(localFakeCallId.incrementAndGet())
-                .setGroupId(raftGroupId)
-                .setType(type)
-                .setMessage(message)
-                .build();
+        final RaftClientReply reply = this.raftClient.io().sendReadOnly(new LocalMessage(request));
+        return ListServicesReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
     public static void main(String[] args) throws Exception {
