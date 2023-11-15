@@ -50,7 +50,7 @@ public class ControllerStateMachine extends BaseStateMachine {
         try {
             final ListServicesRequest listServicesRequest;
             if (request instanceof LocalMessage localMessage) {
-                final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
+                final GeneratedMessageV3 generatedMessage = localMessage.message();
                 listServicesRequest = (ListServicesRequest) generatedMessage;
             } else {
                 try {
@@ -81,7 +81,7 @@ public class ControllerStateMachine extends BaseStateMachine {
             final RegisterServiceRequest registerServiceRequest;
             if (trx.getClientRequest() != null
                     && trx.getClientRequest().getMessage() instanceof LocalMessage localMessage) {
-                final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
+                final GeneratedMessageV3 generatedMessage = localMessage.message();
                 registerServiceRequest = (RegisterServiceRequest) generatedMessage;
             } else {
                 try {

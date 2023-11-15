@@ -22,12 +22,9 @@ import org.apache.ratis.protocol.Message;
 import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 import org.tisonkun.morax.proto.io.BufferUtils;
 
-@Data
-public class LocalMessage implements Message {
-    private final GeneratedMessageV3 actualMessage;
-
+public record LocalMessage(GeneratedMessageV3 message) implements Message {
     @Override
     public ByteString getContent() {
-        return BufferUtils.byteStringDoShade(actualMessage.toByteString());
+        return BufferUtils.byteStringDoShade(message.toByteString());
     }
 }

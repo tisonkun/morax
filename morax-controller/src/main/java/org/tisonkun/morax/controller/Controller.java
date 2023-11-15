@@ -86,14 +86,14 @@ public class Controller extends AbstractIdleService {
         final RaftClientReply reply = this.raftServer.submitClientRequest(
                 buildRawRequest(new LocalMessage(request), RaftClientRequest.writeRequestType()));
         final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
-        return (RegisterServiceReply) replyMessage.getActualMessage();
+        return (RegisterServiceReply) replyMessage.message();
     }
 
     public ListServicesReply listServices(ListServicesRequest request) throws IOException {
         final RaftClientReply reply = this.raftServer.submitClientRequest(
                 buildRawRequest(new LocalMessage(request), RaftClientRequest.readRequestType()));
         final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
-        return (ListServicesReply) replyMessage.getActualMessage();
+        return (ListServicesReply) replyMessage.message();
     }
 
     private RaftClientRequest buildRawRequest(Message message, RaftClientRequest.Type type) {
