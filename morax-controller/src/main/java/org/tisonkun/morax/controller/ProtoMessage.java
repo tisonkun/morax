@@ -14,27 +14,16 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.proto.config;
+package org.tisonkun.morax.controller;
 
-import java.nio.file.Path;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
+import com.google.protobuf.GeneratedMessageV3;
+import org.apache.ratis.protocol.Message;
+import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
+import org.tisonkun.morax.proto.io.BufferUtils;
 
-@Data
-@Builder
-@Jacksonized
-public class MoraxControllerServerConfig {
-    @Builder.Default
-    private int serverPort = 10386;
-
-    @Builder.Default
-    private Path storageDir = Path.of("/tmp/morax/controller/raft-server/");
-
-    @Builder.Default
-    private String raftPeerId = "n0";
-
-    @Builder.Default
-    private RaftGroupConfig raftGroup = new RaftGroupConfig(List.of(new RaftPeerConfig("n0", "127.0.0.1:12386")));
+public record ProtoMessage(GeneratedMessageV3 message) implements Message {
+    @Override
+    public ByteString getContent() {
+        return BufferUtils.byteStringDoShade(message.toByteString());
+    }
 }

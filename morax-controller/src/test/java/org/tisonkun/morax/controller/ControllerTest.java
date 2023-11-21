@@ -14,27 +14,15 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.proto.config;
+package org.tisonkun.morax.controller;
 
 import java.nio.file.Path;
-import java.util.List;
-import lombok.Builder;
-import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-@Data
-@Builder
-@Jacksonized
-public class MoraxControllerServerConfig {
-    @Builder.Default
-    private int serverPort = 10386;
-
-    @Builder.Default
-    private Path storageDir = Path.of("/tmp/morax/controller/raft-server/");
-
-    @Builder.Default
-    private String raftPeerId = "n0";
-
-    @Builder.Default
-    private RaftGroupConfig raftGroup = new RaftGroupConfig(List.of(new RaftPeerConfig("n0", "127.0.0.1:12386")));
+class ControllerTest {
+    @Test
+    void testRegisterService(@TempDir Path storageDir) {
+        //
+    }
 }

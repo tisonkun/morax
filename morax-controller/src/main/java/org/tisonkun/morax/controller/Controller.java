@@ -21,7 +21,9 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.conf.Parameters;
@@ -35,6 +37,7 @@ import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.util.NetUtils;
 import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
 import org.tisonkun.morax.proto.controller.ControllerGrpc;
@@ -42,26 +45,37 @@ import org.tisonkun.morax.proto.controller.ListServicesReply;
 import org.tisonkun.morax.proto.controller.ListServicesRequest;
 import org.tisonkun.morax.proto.controller.RegisterServiceReply;
 import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
+import org.tisonkun.morax.proto.controller.RequestUnion;
 import org.tisonkun.morax.proto.controller.ServiceInfoProto;
 import org.tisonkun.morax.proto.controller.ServiceType;
 
 @Slf4j
 public class Controller extends AbstractIdleService {
-    private final RaftGroupId raftGroupId;
     private final RaftServer raftServer;
     private final RaftClient raftClient;
     private final Server grpcServer;
 
     public Controller(MoraxControllerServerConfig config) throws IOException {
-        final String address = "127.0.0.1:" + config.getRaftServerPort();
-        final RaftPeer peer =
-                RaftPeer.newBuilder().setId("n0").setAddress(address).build();
-        final int port = NetUtils.createSocketAddr(address).getPort();
-        final RaftProperties properties = new RaftProperties();
-        GrpcConfigKeys.Server.setPort(properties, port);
+        // currently - the controller quorum is always in the same group
+        final RaftGroupId raftGroupId = RaftGroupId.emptyGroupId();
+        final Collection<RaftPeer> peers = config.getRaftGroup().getPeers().stream()
+                .map(p -> RaftPeer.newBuilder()
+                        .setId(p.getId())
+                        .setAddress(p.getAddress())
+                        .build())
+                .collect(Collectors.toSet());
+        final RaftPeer peer = peers.stream()
+                .filter(p -> p.getId().toString().equals(config.getRaftPeerId()))
+                .findFirst()
+                .orElseThrow();
+        final RaftGroup group = RaftGroup.valueOf(raftGroupId, peer);
 
-        this.raftGroupId = RaftGroupId.valueOf(new UUID(0, 1));
-        final RaftGroup group = RaftGroup.valueOf(this.raftGroupId, peer);
+        final RaftProperties properties = new RaftProperties();
+        GrpcConfigKeys.Server.setPort(
+                properties, NetUtils.createSocketAddr(peer.getAddress()).getPort());
+        RaftServerConfigKeys.setStorageDir(
+                properties, Collections.singletonList(config.getStorageDir().toFile()));
+
         this.raftServer = RaftServer.newBuilder()
                 .setGroup(group)
                 .setProperties(properties)
@@ -69,15 +83,14 @@ public class Controller extends AbstractIdleService {
                 .setStateMachine(new ControllerStateMachine())
                 .build();
 
-        final GrpcClientRpc rpc =
-                new GrpcFactory(new Parameters()).newRaftClientRpc(ClientId.randomId(), properties);
+        final GrpcClientRpc rpc = new GrpcFactory(new Parameters()).newRaftClientRpc(ClientId.randomId(), properties);
         this.raftClient = RaftClient.newBuilder()
                 .setProperties(properties)
                 .setRaftGroup(group)
                 .setClientRpc(rpc)
                 .build();
 
-        this.grpcServer = ServerBuilder.forPort(config.getPort())
+        this.grpcServer = ServerBuilder.forPort(config.getServerPort())
                 .addService(new GrpcServiceAdapter())
                 .build();
     }
@@ -97,12 +110,16 @@ public class Controller extends AbstractIdleService {
     }
 
     public RegisterServiceReply registerService(RegisterServiceRequest request) throws IOException {
-        final RaftClientReply reply = this.raftClient.io().send(new LocalMessage(request));
+        final RequestUnion requestUnion =
+                RequestUnion.newBuilder().setRegisterService(request).build();
+        final RaftClientReply reply = this.raftClient.io().send(new ProtoMessage(requestUnion));
         return RegisterServiceReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
     public ListServicesReply listServices(ListServicesRequest request) throws IOException {
-        final RaftClientReply reply = this.raftClient.io().sendReadOnly(new LocalMessage(request));
+        final RequestUnion requestUnion =
+                RequestUnion.newBuilder().setListServices(request).build();
+        final RaftClientReply reply = this.raftClient.io().sendReadOnly(new ProtoMessage(requestUnion));
         return ListServicesReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
@@ -152,7 +169,8 @@ public class Controller extends AbstractIdleService {
         }
 
         @Override
-        public void registerService(RegisterServiceRequest request, StreamObserver<RegisterServiceReply> responseObserver) {
+        public void registerService(
+                RegisterServiceRequest request, StreamObserver<RegisterServiceReply> responseObserver) {
             try {
                 final RegisterServiceReply reply = Controller.this.registerService(request);
                 responseObserver.onNext(reply);

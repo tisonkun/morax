@@ -16,87 +16,86 @@
 
 package org.tisonkun.morax.controller;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
-import javax.annotation.concurrent.GuardedBy;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
 import org.tisonkun.morax.proto.controller.ListServicesReply;
-import org.tisonkun.morax.proto.controller.ListServicesRequest;
 import org.tisonkun.morax.proto.controller.RegisterServiceReply;
 import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
-import org.tisonkun.morax.proto.controller.ServiceInfoProto;
+import org.tisonkun.morax.proto.controller.RequestUnion;
 import org.tisonkun.morax.proto.controller.ServiceType;
+import org.tisonkun.morax.proto.exception.ExceptionMessageBuilder;
 import org.tisonkun.morax.proto.io.BufferUtils;
 
 public class ControllerStateMachine extends BaseStateMachine {
 
-    private final ReentrantReadWriteLock servicesLock = new ReentrantReadWriteLock();
-
-    @GuardedBy("servicesLock")
-    private final Collection<ServiceInfoProto> services = new ArrayList<>();
+    private final ControllerState state = new ControllerState();
 
     @Override
     public CompletableFuture<Message> query(Message request) {
-        servicesLock.readLock().lock();
-        try {
-            final ListServicesRequest listServicesRequest;
-            if (request instanceof LocalMessage localMessage) {
-                final GeneratedMessageV3 generatedMessage = localMessage.message();
-                listServicesRequest = (ListServicesRequest) generatedMessage;
-            } else {
-                try {
-                    final ByteString bytes = BufferUtils.byteStringUndoShade(request.getContent());
-                    listServicesRequest = ListServicesRequest.parseFrom(bytes);
-                } catch (InvalidProtocolBufferException e) {
-                    return CompletableFuture.failedFuture(e);
-                }
+        final RequestUnion requestUnion;
+
+        if (request instanceof ProtoMessage localMessage) {
+            requestUnion = (RequestUnion) localMessage.message();
+        } else {
+            try {
+                requestUnion = RequestUnion.parseFrom(BufferUtils.byteStringUndoShade(request.getContent()));
+            } catch (InvalidProtocolBufferException e) {
+                return CompletableFuture.failedFuture(e);
             }
-            final List<ServiceType> serviceTypes = listServicesRequest.getServiceTypeList();
-            final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
-            for (ServiceType serviceType : serviceTypes) {
-                final Collection<ServiceInfoProto> serviceInfos = services.stream()
-                        .filter(service -> service.getType().equals(serviceType))
-                        .collect(Collectors.toSet());
-                reply.addAllServiceInfo(serviceInfos);
+        }
+
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (requestUnion.getRequestUnionCase()) {
+            case LISTSERVICES -> {
+                final List<ServiceType> serviceTypes =
+                        requestUnion.getListServices().getServiceTypeList();
+                final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
+                reply.addAllServiceInfo(state.listServices(serviceTypes));
+                return CompletableFuture.completedFuture(new ProtoMessage(reply.build()));
             }
-            return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
-        } finally {
-            servicesLock.readLock().unlock();
+            default -> {
+                final String message = ExceptionMessageBuilder.exMsg("Unsupported readonly request")
+                        .kv("requestCase", requestUnion.getRequestUnionCase())
+                        .toString();
+                return CompletableFuture.failedFuture(new UnsupportedOperationException(message));
+            }
         }
     }
 
     @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
-        servicesLock.writeLock().lock();
-        try {
-            final RegisterServiceRequest registerServiceRequest;
-            if (trx.getClientRequest() != null
-                    && trx.getClientRequest().getMessage() instanceof LocalMessage localMessage) {
-                final GeneratedMessageV3 generatedMessage = localMessage.message();
-                registerServiceRequest = (RegisterServiceRequest) generatedMessage;
-            } else {
-                try {
-                    final ByteString bytes = BufferUtils.byteStringUndoShade(
-                            trx.getStateMachineLogEntry().getLogData());
-                    registerServiceRequest = RegisterServiceRequest.parseFrom(bytes);
-                } catch (InvalidProtocolBufferException e) {
-                    return CompletableFuture.failedFuture(e);
-                }
+        final RequestUnion requestUnion;
+
+        if (trx.getClientRequest() != null
+                && trx.getClientRequest().getMessage() instanceof ProtoMessage localMessage) {
+            requestUnion = (RequestUnion) localMessage.message();
+        } else {
+            try {
+                requestUnion = RequestUnion.parseFrom(BufferUtils.byteStringUndoShade(
+                        trx.getStateMachineLogEntry().getLogData()));
+            } catch (InvalidProtocolBufferException e) {
+                return CompletableFuture.failedFuture(e);
             }
-            services.add(registerServiceRequest.getServiceInfo());
-            final RegisterServiceReply.Builder reply = RegisterServiceReply.newBuilder();
-            return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
-        } finally {
-            servicesLock.writeLock().unlock();
+        }
+
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (requestUnion.getRequestUnionCase()) {
+            case REGISTERSERVICE -> {
+                final RegisterServiceRequest registerServiceRequest = requestUnion.getRegisterService();
+                final RegisterServiceReply.Builder reply = RegisterServiceReply.newBuilder();
+                reply.setExist(!state.registerService(registerServiceRequest.getServiceInfo()));
+                return CompletableFuture.completedFuture(new ProtoMessage(reply.build()));
+            }
+            default -> {
+                final String message = ExceptionMessageBuilder.exMsg("Unsupported write request")
+                        .kv("requestCase", requestUnion.getRequestUnionCase())
+                        .toString();
+                return CompletableFuture.failedFuture(new UnsupportedOperationException(message));
+            }
         }
     }
 }

@@ -27,11 +27,21 @@ service Controller {
   rpc listServices(ListServicesRequest) returns (ListServicesReply) {}
 }
 
+// RequestUnion to distinguish requests across Ratis state machine.
+message RequestUnion {
+  oneof requestUnion {
+      RegisterServiceRequest registerService = 1;
+      ListServicesRequest listServices = 2;
+  }
+}
+
 message RegisterServiceRequest {
   ServiceInfoProto serviceInfo = 1;
 }
 
-message RegisterServiceReply {}
+message RegisterServiceReply {
+  bool exist = 1;
+}
 
 message ListServicesRequest {
   repeated ServiceType serviceType = 1;

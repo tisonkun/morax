@@ -16,7 +16,6 @@
 
 package org.tisonkun.morax.proto.config;
 
-import java.nio.file.Path;
 import java.util.List;
 import lombok.Builder;
 import lombok.Data;
@@ -25,16 +24,6 @@ import lombok.extern.jackson.Jacksonized;
 @Data
 @Builder
 @Jacksonized
-public class MoraxControllerServerConfig {
-    @Builder.Default
-    private int serverPort = 10386;
-
-    @Builder.Default
-    private Path storageDir = Path.of("/tmp/morax/controller/raft-server/");
-
-    @Builder.Default
-    private String raftPeerId = "n0";
-
-    @Builder.Default
-    private RaftGroupConfig raftGroup = new RaftGroupConfig(List.of(new RaftPeerConfig("n0", "127.0.0.1:12386")));
+public class RaftGroupConfig {
+    private List<RaftPeerConfig> peers;
 }
