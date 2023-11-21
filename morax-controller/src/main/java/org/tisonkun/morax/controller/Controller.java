@@ -21,8 +21,9 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.client.RaftClient;
@@ -39,42 +40,43 @@ import org.apache.ratis.protocol.RaftPeer;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.util.NetUtils;
-import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
+import org.tisonkun.morax.proto.config.ControllerServerConfig;
 import org.tisonkun.morax.proto.controller.ControllerGrpc;
 import org.tisonkun.morax.proto.controller.ListServicesReply;
 import org.tisonkun.morax.proto.controller.ListServicesRequest;
 import org.tisonkun.morax.proto.controller.RegisterServiceReply;
 import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
 import org.tisonkun.morax.proto.controller.RequestUnion;
-import org.tisonkun.morax.proto.controller.ServiceInfoProto;
-import org.tisonkun.morax.proto.controller.ServiceType;
 
 @Slf4j
 public class Controller extends AbstractIdleService {
+    // currently - the controller quorum is always in the same group
+    private static final RaftGroupId RAFT_GROUP_ID =
+            RaftGroupId.valueOf(UUID.nameUUIDFromBytes("MORAX".getBytes(StandardCharsets.UTF_8)));
+
     private final RaftServer raftServer;
     private final RaftClient raftClient;
     private final Server grpcServer;
 
-    public Controller(MoraxControllerServerConfig config) throws IOException {
-        // currently - the controller quorum is always in the same group
-        final RaftGroupId raftGroupId = RaftGroupId.emptyGroupId();
+    public Controller(ControllerServerConfig config) throws IOException {
         final Collection<RaftPeer> peers = config.getRaftGroup().getPeers().stream()
                 .map(p -> RaftPeer.newBuilder()
                         .setId(p.getId())
                         .setAddress(p.getAddress())
                         .build())
                 .collect(Collectors.toSet());
+
         final RaftPeer peer = peers.stream()
                 .filter(p -> p.getId().toString().equals(config.getRaftPeerId()))
                 .findFirst()
                 .orElseThrow();
-        final RaftGroup group = RaftGroup.valueOf(raftGroupId, peer);
+
+        final RaftGroup group = RaftGroup.valueOf(RAFT_GROUP_ID, peer);
 
         final RaftProperties properties = new RaftProperties();
-        GrpcConfigKeys.Server.setPort(
-                properties, NetUtils.createSocketAddr(peer.getAddress()).getPort());
-        RaftServerConfigKeys.setStorageDir(
-                properties, Collections.singletonList(config.getStorageDir().toFile()));
+        final int raftPeerPort = NetUtils.createSocketAddr(peer.getAddress()).getPort();
+        GrpcConfigKeys.Server.setPort(properties, raftPeerPort);
+        RaftServerConfigKeys.setStorageDir(properties, config.getRaftStorageDir());
 
         this.raftServer = RaftServer.newBuilder()
                 .setGroup(group)
@@ -121,39 +123,6 @@ public class Controller extends AbstractIdleService {
                 RequestUnion.newBuilder().setListServices(request).build();
         final RaftClientReply reply = this.raftClient.io().sendReadOnly(new ProtoMessage(requestUnion));
         return ListServicesReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
-    }
-
-    public static void main(String[] args) throws Exception {
-        final Controller stateManager =
-                new Controller(MoraxControllerServerConfig.builder().build());
-        try {
-            stateManager.startUp();
-            {
-                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder()
-                        .addServiceType(ServiceType.Bookie)
-                        .build());
-                System.out.println("listServicesReply=" + listServicesReply);
-            }
-            {
-                final ServiceInfoProto serviceInfoProto = ServiceInfoProto.newBuilder()
-                        .setType(ServiceType.Bookie)
-                        .setTarget("localhost:8080")
-                        .build();
-                final RegisterServiceReply registerServiceReply =
-                        stateManager.registerService(RegisterServiceRequest.newBuilder()
-                                .setServiceInfo(serviceInfoProto)
-                                .build());
-                System.out.println("registerServiceReply=" + registerServiceReply);
-            }
-            {
-                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder()
-                        .addServiceType(ServiceType.Bookie)
-                        .build());
-                System.out.println("listServicesReply=" + listServicesReply);
-            }
-        } finally {
-            stateManager.shutDown();
-        }
     }
 
     private class GrpcServiceAdapter extends ControllerGrpc.ControllerImplBase {

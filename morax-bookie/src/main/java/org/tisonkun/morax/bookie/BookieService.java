@@ -23,12 +23,12 @@ import org.tisonkun.morax.proto.bookie.BookieServiceGrpc;
 import org.tisonkun.morax.proto.bookie.Entry;
 import org.tisonkun.morax.proto.bookie.ReadEntryReply;
 import org.tisonkun.morax.proto.bookie.ReadEntryRequest;
-import org.tisonkun.morax.proto.config.MoraxBookieServerConfig;
+import org.tisonkun.morax.proto.config.BookieServerConfig;
 
 public class BookieService extends BookieServiceGrpc.BookieServiceImplBase {
     private final Bookie bookie;
 
-    public BookieService(MoraxBookieServerConfig serverConfig) {
+    public BookieService(BookieServerConfig serverConfig) {
         this.bookie = new Bookie(serverConfig);
     }
 

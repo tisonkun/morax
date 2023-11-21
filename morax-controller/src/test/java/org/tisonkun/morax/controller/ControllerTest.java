@@ -16,13 +16,55 @@
 
 package org.tisonkun.morax.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import java.io.File;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.tisonkun.morax.proto.config.ControllerServerConfig;
+import org.tisonkun.morax.proto.controller.ListServicesReply;
+import org.tisonkun.morax.proto.controller.ListServicesRequest;
+import org.tisonkun.morax.proto.controller.RegisterServiceReply;
+import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
+import org.tisonkun.morax.proto.controller.ServiceInfoProto;
+import org.tisonkun.morax.proto.controller.ServiceType;
 
 class ControllerTest {
     @Test
-    void testRegisterService(@TempDir Path storageDir) {
-        //
+    void testRegisterService(@TempDir Path tempDir) throws Exception {
+        final List<File> storageDir = Collections.singletonList(tempDir.toFile());
+        final ControllerServerConfig config =
+                ControllerServerConfig.builder().raftStorageDir(storageDir).build();
+        final Controller controller = new Controller(config);
+        try {
+            controller.startUp();
+
+            final var reply0 = controller.listServices(ListServicesRequest.newBuilder()
+                    .addServiceType(ServiceType.Bookie)
+                    .build());
+            assertThat(reply0).isEqualTo(ListServicesReply.newBuilder().build());
+
+            final ServiceInfoProto serviceInfoProto = ServiceInfoProto.newBuilder()
+                    .setType(ServiceType.Bookie)
+                    .setTarget("localhost:8080")
+                    .build();
+
+            final var reply1 = controller.registerService(RegisterServiceRequest.newBuilder()
+                    .setServiceInfo(serviceInfoProto)
+                    .build());
+            assertThat(reply1).isEqualTo(RegisterServiceReply.newBuilder().build());
+
+            final var reply2 = controller.listServices(ListServicesRequest.newBuilder()
+                    .addServiceType(ServiceType.Bookie)
+                    .build());
+            assertThat(reply2)
+                    .isEqualTo(ListServicesReply.newBuilder()
+                            .addServiceInfo(serviceInfoProto)
+                            .build());
+        } finally {
+            controller.shutDown();
+        }
     }
 }

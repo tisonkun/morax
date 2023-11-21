@@ -16,25 +16,21 @@
 
 package org.tisonkun.morax.proto.config;
 
-import java.nio.file.Path;
+import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
-import lombok.extern.jackson.Jacksonized;
+import lombok.RequiredArgsConstructor;
 
 @Data
 @Builder
-@Jacksonized
-public class MoraxControllerServerConfig {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class BookieServerConfig {
     @Builder.Default
-    private int serverPort = 10386;
+    private final int port = 10594;
 
     @Builder.Default
-    private Path storageDir = Path.of("/tmp/morax/controller/raft-server/");
-
-    @Builder.Default
-    private String raftPeerId = "n0";
-
-    @Builder.Default
-    private RaftGroupConfig raftGroup = new RaftGroupConfig(List.of(new RaftPeerConfig("n0", "127.0.0.1:12386")));
+    private final List<File> ledgerDirs = Collections.singletonList(new File("/tmp/morax/bookie"));
 }

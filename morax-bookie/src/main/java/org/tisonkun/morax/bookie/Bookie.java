@@ -29,14 +29,14 @@ import org.tisonkun.morax.bookie.storage.EntryLogger;
 import org.tisonkun.morax.bookie.storage.EntryPosIndices;
 import org.tisonkun.morax.bookie.storage.LedgerDirs;
 import org.tisonkun.morax.proto.bookie.Entry;
-import org.tisonkun.morax.proto.config.MoraxBookieServerConfig;
+import org.tisonkun.morax.proto.config.BookieServerConfig;
 
 @Slf4j
 public class Bookie {
     private final LedgerDirs ledgerDirs;
     private final ConcurrentMap<Long, Ledger> ledgers;
 
-    public Bookie(MoraxBookieServerConfig serverConfig) {
+    public Bookie(BookieServerConfig serverConfig) {
         this.ledgerDirs = new LedgerDirs(serverConfig.getLedgerDirs());
         this.ledgers = new ConcurrentHashMap<>();
     }
