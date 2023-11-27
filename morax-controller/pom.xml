@@ -51,6 +51,10 @@
         </dependency>
         <dependency>
             <groupId>org.apache.ratis</groupId>
+            <artifactId>ratis-metrics-default</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ratis</groupId>
             <artifactId>ratis-grpc</artifactId>
         </dependency>
         <dependency>

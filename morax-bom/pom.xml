@@ -134,6 +134,11 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.ratis</groupId>
+                <artifactId>ratis-metrics-default</artifactId>
+                <version>${ratis.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.ratis</groupId>
                 <artifactId>ratis-grpc</artifactId>
                 <version>${ratis.version}</version>
             </dependency>

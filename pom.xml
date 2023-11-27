@@ -43,8 +43,8 @@
         <netty.version>4.1.97.Final</netty.version>
         <protobuf3.version>3.24.3</protobuf3.version>
         <protoc3.version>${protobuf3.version}</protoc3.version>
-        <ratis.version>2.5.1</ratis.version>
-        <ratis-thirdparty.version>1.0.4</ratis-thirdparty.version>
+        <ratis.version>3.0.0</ratis.version>
+        <ratis-thirdparty.version>1.0.5</ratis-thirdparty.version>
         <rocksdb.version>7.10.2</rocksdb.version>
         <slf4j.version>2.0.7</slf4j.version>
         <tomcat-annontation.version>6.0.53</tomcat-annontation.version>
