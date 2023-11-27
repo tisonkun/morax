@@ -16,87 +16,75 @@
 
 package org.tisonkun.morax.controller;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
-import javax.annotation.concurrent.GuardedBy;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
-import org.tisonkun.morax.proto.controller.ListServicesReply;
-import org.tisonkun.morax.proto.controller.ListServicesRequest;
-import org.tisonkun.morax.proto.controller.RegisterServiceReply;
-import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
-import org.tisonkun.morax.proto.controller.ServiceInfoProto;
-import org.tisonkun.morax.proto.controller.ServiceType;
+import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
+import org.tisonkun.morax.proto.controller.ListBookiesReply;
+import org.tisonkun.morax.proto.controller.ListBookiesRequest;
+import org.tisonkun.morax.proto.controller.RegisterBookieReply;
+import org.tisonkun.morax.proto.controller.RegisterBookieRequest;
+import org.tisonkun.morax.proto.exception.ExceptionMessageBuilder;
 import org.tisonkun.morax.proto.io.BufferUtils;
 
 public class ControllerStateMachine extends BaseStateMachine {
 
-    private final ReentrantReadWriteLock servicesLock = new ReentrantReadWriteLock();
-
-    @GuardedBy("servicesLock")
-    private final Collection<ServiceInfoProto> services = new ArrayList<>();
+    private final ControllerState state = new ControllerState();
 
     @Override
     public CompletableFuture<Message> query(Message request) {
-        servicesLock.readLock().lock();
-        try {
-            final ListServicesRequest listServicesRequest;
-            if (request instanceof LocalMessage localMessage) {
-                final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
-                listServicesRequest = (ListServicesRequest) generatedMessage;
-            } else {
-                try {
-                    final ByteString bytes = BufferUtils.byteStringUndoShade(request.getContent());
-                    listServicesRequest = ListServicesRequest.parseFrom(bytes);
-                } catch (InvalidProtocolBufferException e) {
-                    return CompletableFuture.failedFuture(e);
-                }
+        final RequestMessage message;
+        if (request instanceof RequestMessage localMessage) {
+            message = localMessage;
+        } else {
+            try {
+                message = RequestMessage.fromBytes(request.getContent());
+            } catch (InvalidProtocolBufferException e) {
+                return CompletableFuture.failedFuture(e);
             }
-            final List<ServiceType> serviceTypes = listServicesRequest.getServiceTypeList();
-            final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
-            for (ServiceType serviceType : serviceTypes) {
-                final Collection<ServiceInfoProto> serviceInfos = services.stream()
-                        .filter(service -> service.getType().equals(serviceType))
-                        .collect(Collectors.toSet());
-                reply.addAllServiceInfo(serviceInfos);
-            }
-            return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
-        } finally {
-            servicesLock.readLock().unlock();
+        }
+
+        if (message.message() instanceof ListBookiesRequest) {
+            final ListBookiesReply.Builder reply = ListBookiesReply.newBuilder();
+            reply.addAllService(state.listBookies());
+            final ByteString content =
+                    BufferUtils.byteStringDoShade(reply.build().toByteString());
+            return CompletableFuture.completedFuture(Message.valueOf(content));
+        } else {
+            final String exMsg = ExceptionMessageBuilder.exMsg("Unsupported readonly request")
+                    .kv("requestType", message.type())
+                    .toString();
+            return CompletableFuture.failedFuture(new UnsupportedOperationException(exMsg));
         }
     }
 
     @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
-        servicesLock.writeLock().lock();
-        try {
-            final RegisterServiceRequest registerServiceRequest;
-            if (trx.getClientRequest() != null
-                    && trx.getClientRequest().getMessage() instanceof LocalMessage localMessage) {
-                final GeneratedMessageV3 generatedMessage = localMessage.getActualMessage();
-                registerServiceRequest = (RegisterServiceRequest) generatedMessage;
-            } else {
-                try {
-                    final ByteString bytes = BufferUtils.byteStringUndoShade(
-                            trx.getStateMachineLogEntry().getLogData());
-                    registerServiceRequest = RegisterServiceRequest.parseFrom(bytes);
-                } catch (InvalidProtocolBufferException e) {
-                    return CompletableFuture.failedFuture(e);
-                }
+        final RequestMessage message;
+        if (trx.getClientRequest() != null
+                && trx.getClientRequest().getMessage() instanceof RequestMessage localMessage) {
+            message = localMessage;
+        } else {
+            try {
+                message = RequestMessage.fromBytes(trx.getStateMachineLogEntry().getLogData());
+            } catch (InvalidProtocolBufferException e) {
+                return CompletableFuture.failedFuture(e);
             }
-            services.add(registerServiceRequest.getServiceInfo());
-            final RegisterServiceReply.Builder reply = RegisterServiceReply.newBuilder();
-            return CompletableFuture.completedFuture(new LocalMessage(reply.build()));
-        } finally {
-            servicesLock.writeLock().unlock();
+        }
+
+        if (message.message() instanceof RegisterBookieRequest req) {
+            final RegisterBookieReply.Builder reply = RegisterBookieReply.newBuilder();
+            reply.setExist(!state.registerBookie(req.getService()));
+            final ByteString content =
+                    BufferUtils.byteStringDoShade(reply.build().toByteString());
+            return CompletableFuture.completedFuture(Message.valueOf(content));
+        } else {
+            final String exMsg = ExceptionMessageBuilder.exMsg("Unsupported transaction request")
+                    .kv("requestType", message.type())
+                    .toString();
+            return CompletableFuture.failedFuture(new UnsupportedOperationException(exMsg));
         }
     }
 }

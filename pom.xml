@@ -36,19 +36,23 @@
         <commons-lang3.version>3.13.0</commons-lang3.version>
         <grpc.version>1.58.0</grpc.version>
         <guava.version>32.1.2-jre</guava.version>
+        <jackson.version>2.15.2</jackson.version>
         <jetbrains-annotations.version>24.0.1</jetbrains-annotations.version>
+        <awaitility.version>4.2.0</awaitility.version>
         <junit.version>5.9.2</junit.version>
         <lombok.version>1.18.30</lombok.version>
         <netty.version>4.1.97.Final</netty.version>
+        <picocli.version>4.6.3</picocli.version>
         <protobuf3.version>3.24.3</protobuf3.version>
         <protoc3.version>${protobuf3.version}</protoc3.version>
-        <ratis.version>2.5.1</ratis.version>
-        <ratis-thirdparty.version>1.0.4</ratis-thirdparty.version>
+        <ratis.version>3.0.0</ratis.version>
+        <ratis-thirdparty.version>1.0.5</ratis-thirdparty.version>
         <rocksdb.version>7.10.2</rocksdb.version>
         <slf4j.version>2.0.7</slf4j.version>
         <tomcat-annontation.version>6.0.53</tomcat-annontation.version>
 
         <!-- bundled maven plugins -->
+        <maven-assembly-plugin.version>3.6.0</maven-assembly-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
 
         <!-- community maven plugins -->
@@ -64,9 +68,20 @@
         <module>morax-bookie</module>
         <module>morax-controller</module>
         <module>morax-proto</module>
+        <module>morax-command</module>
     </modules>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven-assembly-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
@@ -108,5 +123,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

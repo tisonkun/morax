@@ -20,13 +20,13 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.tisonkun.morax.proto.config.MoraxBookieServerConfig;
+import org.tisonkun.morax.proto.config.BookieServerConfig;
 
 @Slf4j
 public class BookieServer extends AbstractIdleService {
     private final Server server;
 
-    public BookieServer(MoraxBookieServerConfig config) {
+    public BookieServer(BookieServerConfig config) {
         this.server = ServerBuilder.forPort(config.getPort())
                 .addService(new BookieService(config))
                 .build();
@@ -45,7 +45,7 @@ public class BookieServer extends AbstractIdleService {
     }
 
     public static void main(String[] args) throws Exception {
-        final MoraxBookieServerConfig config = MoraxBookieServerConfig.builder().build();
+        final BookieServerConfig config = BookieServerConfig.builder().build();
         final BookieServer bookieServer = new BookieServer(config);
         bookieServer.startUp();
         bookieServer.shutDown();

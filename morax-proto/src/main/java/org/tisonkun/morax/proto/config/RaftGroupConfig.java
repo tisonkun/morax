@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.controller;
+package org.tisonkun.morax.proto.config;
 
-import com.google.protobuf.GeneratedMessageV3;
+import java.util.List;
+import lombok.Builder;
 import lombok.Data;
-import org.apache.ratis.protocol.Message;
-import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
-import org.tisonkun.morax.proto.io.BufferUtils;
+import lombok.extern.jackson.Jacksonized;
 
 @Data
-public class LocalMessage implements Message {
-    private final GeneratedMessageV3 actualMessage;
-
-    @Override
-    public ByteString getContent() {
-        return BufferUtils.byteStringDoShade(actualMessage.toByteString());
-    }
+@Builder
+@Jacksonized
+public class RaftGroupConfig {
+    private List<RaftPeerConfig> peers;
 }

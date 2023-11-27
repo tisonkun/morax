@@ -30,6 +30,15 @@ public class BufferUtils {
         return Unpooled.wrappedBuffer(byteBuffer);
     }
 
+    public static ByteBuf byteStringToByteBuf(org.apache.ratis.thirdparty.com.google.protobuf.ByteString bytes) {
+        final ByteBuffer byteBuffer = bytes.asReadOnlyByteBuffer();
+        return Unpooled.wrappedBuffer(byteBuffer);
+    }
+
+    public static org.apache.ratis.thirdparty.com.google.protobuf.ByteString byteBufToByteString(ByteBuf bytes) {
+        return org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations.unsafeWrap(bytes.nioBuffer());
+    }
+
     public static org.apache.ratis.thirdparty.com.google.protobuf.ByteString byteStringDoShade(ByteString bytes) {
         return org.apache.ratis.thirdparty.com.google.protobuf.UnsafeByteOperations.unsafeWrap(
                 bytes.asReadOnlyByteBuffer());

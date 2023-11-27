@@ -17,126 +17,134 @@
 package org.tisonkun.morax.controller;
 
 import com.google.common.util.concurrent.AbstractIdleService;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.ratis.client.RaftClient;
+import org.apache.ratis.conf.Parameters;
 import org.apache.ratis.conf.RaftProperties;
 import org.apache.ratis.grpc.GrpcConfigKeys;
+import org.apache.ratis.grpc.GrpcFactory;
+import org.apache.ratis.grpc.client.GrpcClientRpc;
 import org.apache.ratis.protocol.ClientId;
-import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftClientReply;
-import org.apache.ratis.protocol.RaftClientRequest;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
-import org.apache.ratis.server.DivisionInfo;
 import org.apache.ratis.server.RaftServer;
+import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.util.NetUtils;
-import org.tisonkun.morax.proto.config.MoraxControllerServerConfig;
-import org.tisonkun.morax.proto.controller.ListServicesReply;
-import org.tisonkun.morax.proto.controller.ListServicesRequest;
-import org.tisonkun.morax.proto.controller.RegisterServiceReply;
-import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
-import org.tisonkun.morax.proto.controller.ServiceInfoProto;
-import org.tisonkun.morax.proto.controller.ServiceType;
+import org.tisonkun.morax.proto.config.ControllerServerConfig;
+import org.tisonkun.morax.proto.controller.ControllerGrpc;
+import org.tisonkun.morax.proto.controller.ControllerRequestType;
+import org.tisonkun.morax.proto.controller.ListBookiesReply;
+import org.tisonkun.morax.proto.controller.ListBookiesRequest;
+import org.tisonkun.morax.proto.controller.RegisterBookieReply;
+import org.tisonkun.morax.proto.controller.RegisterBookieRequest;
 
+@Slf4j
 public class Controller extends AbstractIdleService {
-    private final ClientId localFakeId = ClientId.randomId();
-    private final AtomicLong localFakeCallId = new AtomicLong(0);
-    private final RaftGroupId raftGroupId;
-    private final RaftServer raftServer;
+    // currently - the controller quorum is always in the same group
+    private static final RaftGroupId RAFT_GROUP_ID =
+            RaftGroupId.valueOf(UUID.nameUUIDFromBytes("MORAX".getBytes(StandardCharsets.UTF_8)));
 
-    public Controller(MoraxControllerServerConfig config) throws IOException {
-        final String address = "127.0.0.1:" + config.getRaftServerPort();
-        final RaftPeer peer =
-                RaftPeer.newBuilder().setId("n0").setAddress(address).build();
-        final int port = NetUtils.createSocketAddr(address).getPort();
+    private final RaftServer raftServer;
+    private final RaftClient raftClient;
+    private final Server grpcServer;
+
+    public Controller(ControllerServerConfig config) throws IOException {
+        final Collection<RaftPeer> peers = config.getRaftGroup().getPeers().stream()
+                .map(p -> RaftPeer.newBuilder()
+                        .setId(p.getId())
+                        .setAddress(p.getAddress())
+                        .build())
+                .collect(Collectors.toSet());
+
+        final RaftPeer peer = peers.stream()
+                .filter(p -> p.getId().toString().equals(config.getRaftPeerId()))
+                .findFirst()
+                .orElseThrow();
+
+        final RaftGroup group = RaftGroup.valueOf(RAFT_GROUP_ID, peer);
+
         final RaftProperties properties = new RaftProperties();
-        GrpcConfigKeys.Server.setPort(properties, port);
-        this.raftGroupId = RaftGroupId.valueOf(new UUID(0, 1));
-        final RaftGroup group = RaftGroup.valueOf(this.raftGroupId, peer);
+        final int raftPeerPort = NetUtils.createSocketAddr(peer.getAddress()).getPort();
+        GrpcConfigKeys.Server.setPort(properties, raftPeerPort);
+        RaftServerConfigKeys.setStorageDir(properties, config.getRaftStorageDir());
+
         this.raftServer = RaftServer.newBuilder()
                 .setGroup(group)
                 .setProperties(properties)
                 .setServerId(peer.getId())
                 .setStateMachine(new ControllerStateMachine())
                 .build();
+
+        final GrpcClientRpc rpc = new GrpcFactory(new Parameters()).newRaftClientRpc(ClientId.randomId(), properties);
+        this.raftClient = RaftClient.newBuilder()
+                .setProperties(properties)
+                .setRaftGroup(group)
+                .setClientRpc(rpc)
+                .build();
+
+        this.grpcServer = ServerBuilder.forPort(config.getServerPort())
+                .addService(new GrpcServiceAdapter())
+                .build();
     }
 
     @Override
     protected void startUp() throws Exception {
         this.raftServer.start();
-        waitUtilLeaderReady();
-    }
-
-    // TODO(*): move to writes and linearized reads when we have a multi nodes cluster.
-    private void waitUtilLeaderReady() throws IOException {
-        final DivisionInfo divisionInfo = raftServer.getDivision(raftGroupId).getInfo();
-        while (!divisionInfo.isLeaderReady()) {
-            Thread.onSpinWait();
-        }
+        final int port = this.grpcServer.start().getPort();
+        log.info("Controller has been ready at port {}.", port);
     }
 
     @Override
     protected void shutDown() throws Exception {
+        this.grpcServer.shutdown().awaitTermination();
         this.raftServer.close();
+        log.info("Controller has been shutdown.");
     }
 
-    public RegisterServiceReply registerService(RegisterServiceRequest request) throws IOException {
-        final RaftClientReply reply = this.raftServer.submitClientRequest(
-                buildRawRequest(new LocalMessage(request), RaftClientRequest.writeRequestType()));
-        final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
-        return (RegisterServiceReply) replyMessage.getActualMessage();
+    public RegisterBookieReply registerService(RegisterBookieRequest request) throws IOException {
+        final RequestMessage message = new RequestMessage(ControllerRequestType.RegisterBookie, request);
+        final RaftClientReply reply = this.raftClient.io().send(message);
+        return RegisterBookieReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
-    public ListServicesReply listServices(ListServicesRequest request) throws IOException {
-        final RaftClientReply reply = this.raftServer.submitClientRequest(
-                buildRawRequest(new LocalMessage(request), RaftClientRequest.readRequestType()));
-        final LocalMessage replyMessage = (LocalMessage) reply.getMessage();
-        return (ListServicesReply) replyMessage.getActualMessage();
+    public ListBookiesReply listServices(ListBookiesRequest request) throws IOException {
+        final RequestMessage message = new RequestMessage(ControllerRequestType.ListBookies, request);
+        final RaftClientReply reply = this.raftClient.io().sendReadOnly(message);
+        return ListBookiesReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
-    private RaftClientRequest buildRawRequest(Message message, RaftClientRequest.Type type) {
-        return RaftClientRequest.newBuilder()
-                .setServerId(raftServer.getId())
-                .setClientId(localFakeId)
-                .setCallId(localFakeCallId.incrementAndGet())
-                .setGroupId(raftGroupId)
-                .setType(type)
-                .setMessage(message)
-                .build();
-    }
-
-    public static void main(String[] args) throws Exception {
-        final Controller stateManager =
-                new Controller(MoraxControllerServerConfig.builder().build());
-        try {
-            stateManager.startUp();
-            {
-                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder()
-                        .addServiceType(ServiceType.Bookie)
-                        .build());
-                System.out.println("listServicesReply=" + listServicesReply);
+    private class GrpcServiceAdapter extends ControllerGrpc.ControllerImplBase {
+        @Override
+        public void listBookies(ListBookiesRequest request, StreamObserver<ListBookiesReply> responseObserver) {
+            try {
+                final ListBookiesReply reply = Controller.this.listServices(request);
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            } catch (Exception e) {
+                responseObserver.onError(e);
             }
-            {
-                final ServiceInfoProto serviceInfoProto = ServiceInfoProto.newBuilder()
-                        .setType(ServiceType.Bookie)
-                        .setTarget("localhost:8080")
-                        .build();
-                final RegisterServiceReply registerServiceReply =
-                        stateManager.registerService(RegisterServiceRequest.newBuilder()
-                                .setServiceInfo(serviceInfoProto)
-                                .build());
-                System.out.println("registerServiceReply=" + registerServiceReply);
+        }
+
+        @Override
+        public void registerBookie(
+                RegisterBookieRequest request, StreamObserver<RegisterBookieReply> responseObserver) {
+            try {
+                final RegisterBookieReply reply = Controller.this.registerService(request);
+                responseObserver.onNext(reply);
+                responseObserver.onCompleted();
+            } catch (Exception e) {
+                responseObserver.onError(e);
             }
-            {
-                final ListServicesReply listServicesReply = stateManager.listServices(ListServicesRequest.newBuilder()
-                        .addServiceType(ServiceType.Bookie)
-                        .build());
-                System.out.println("listServicesReply=" + listServicesReply);
-            }
-        } finally {
-            stateManager.shutDown();
         }
     }
 }

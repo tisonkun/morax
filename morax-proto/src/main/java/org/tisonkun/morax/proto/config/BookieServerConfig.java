@@ -14,14 +14,23 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.proto.exception;
+package org.tisonkun.morax.proto.config;
 
-public class MoraxException extends RuntimeException {
-    public MoraxException(String message) {
-        super(message);
-    }
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-    public MoraxException(String message, Throwable cause) {
-        super(message, cause);
-    }
+@Data
+@Builder
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class BookieServerConfig {
+    @Builder.Default
+    private final int port = 10594;
+
+    @Builder.Default
+    private final List<File> ledgerDirs = Collections.singletonList(new File("/tmp/morax/bookie"));
 }
