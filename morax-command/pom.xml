@@ -29,5 +29,5 @@
     </parent>
 
     <groupId>io.montumi.datafusion</groupId>
-    <artifactId>morax-ctl</artifactId>
+    <artifactId>morax-command</artifactId>
 </project>
