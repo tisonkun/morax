@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.tisonkun.morax.ctl;
+package org.tisonkun.morax.command;
 
-import java.util.Objects;
+import picocli.CommandLine;
 
-public final class CommandLineMain {
-    public static void main(String[] args) {
-        Objects.requireNonNull(42);
-    }
-}
+@CommandLine.Command(
+        name = "controller",
+        version = "0.1.0",
+        mixinStandardHelpOptions = true,
+        description = "Manipulate controller")
+public class CommandController {}
