@@ -17,16 +17,15 @@
 package org.tisonkun.morax.controller;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
-import org.tisonkun.morax.proto.controller.ListServicesReply;
-import org.tisonkun.morax.proto.controller.RegisterServiceReply;
-import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
-import org.tisonkun.morax.proto.controller.RequestUnion;
-import org.tisonkun.morax.proto.controller.ServiceType;
+import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
+import org.tisonkun.morax.proto.controller.ListBookiesReply;
+import org.tisonkun.morax.proto.controller.ListBookiesRequest;
+import org.tisonkun.morax.proto.controller.RegisterBookieReply;
+import org.tisonkun.morax.proto.controller.RegisterBookieRequest;
 import org.tisonkun.morax.proto.exception.ExceptionMessageBuilder;
 import org.tisonkun.morax.proto.io.BufferUtils;
 
@@ -36,66 +35,56 @@ public class ControllerStateMachine extends BaseStateMachine {
 
     @Override
     public CompletableFuture<Message> query(Message request) {
-        final RequestUnion requestUnion;
-
-        if (request instanceof ProtoMessage localMessage) {
-            requestUnion = (RequestUnion) localMessage.message();
+        final RequestMessage message;
+        if (request instanceof RequestMessage localMessage) {
+            message = localMessage;
         } else {
             try {
-                requestUnion = RequestUnion.parseFrom(BufferUtils.byteStringUndoShade(request.getContent()));
+                message = RequestMessage.fromBytes(request.getContent());
             } catch (InvalidProtocolBufferException e) {
                 return CompletableFuture.failedFuture(e);
             }
         }
 
-        //noinspection SwitchStatementWithTooFewBranches
-        switch (requestUnion.getRequestUnionCase()) {
-            case LISTSERVICES -> {
-                final List<ServiceType> serviceTypes =
-                        requestUnion.getListServices().getServiceTypeList();
-                final ListServicesReply.Builder reply = ListServicesReply.newBuilder();
-                reply.addAllServiceInfo(state.listServices(serviceTypes));
-                return CompletableFuture.completedFuture(new ProtoMessage(reply.build()));
-            }
-            default -> {
-                final String message = ExceptionMessageBuilder.exMsg("Unsupported readonly request")
-                        .kv("requestCase", requestUnion.getRequestUnionCase())
-                        .toString();
-                return CompletableFuture.failedFuture(new UnsupportedOperationException(message));
-            }
+        if (message.message() instanceof ListBookiesRequest) {
+            final ListBookiesReply.Builder reply = ListBookiesReply.newBuilder();
+            reply.addAllService(state.listBookies());
+            final ByteString content =
+                    BufferUtils.byteStringDoShade(reply.build().toByteString());
+            return CompletableFuture.completedFuture(Message.valueOf(content));
+        } else {
+            final String exMsg = ExceptionMessageBuilder.exMsg("Unsupported readonly request")
+                    .kv("requestType", message.type())
+                    .toString();
+            return CompletableFuture.failedFuture(new UnsupportedOperationException(exMsg));
         }
     }
 
     @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
-        final RequestUnion requestUnion;
-
+        final RequestMessage message;
         if (trx.getClientRequest() != null
-                && trx.getClientRequest().getMessage() instanceof ProtoMessage localMessage) {
-            requestUnion = (RequestUnion) localMessage.message();
+                && trx.getClientRequest().getMessage() instanceof RequestMessage localMessage) {
+            message = localMessage;
         } else {
             try {
-                requestUnion = RequestUnion.parseFrom(BufferUtils.byteStringUndoShade(
-                        trx.getStateMachineLogEntry().getLogData()));
+                message = RequestMessage.fromBytes(trx.getStateMachineLogEntry().getLogData());
             } catch (InvalidProtocolBufferException e) {
                 return CompletableFuture.failedFuture(e);
             }
         }
 
-        //noinspection SwitchStatementWithTooFewBranches
-        switch (requestUnion.getRequestUnionCase()) {
-            case REGISTERSERVICE -> {
-                final RegisterServiceRequest registerServiceRequest = requestUnion.getRegisterService();
-                final RegisterServiceReply.Builder reply = RegisterServiceReply.newBuilder();
-                reply.setExist(!state.registerService(registerServiceRequest.getServiceInfo()));
-                return CompletableFuture.completedFuture(new ProtoMessage(reply.build()));
-            }
-            default -> {
-                final String message = ExceptionMessageBuilder.exMsg("Unsupported write request")
-                        .kv("requestCase", requestUnion.getRequestUnionCase())
-                        .toString();
-                return CompletableFuture.failedFuture(new UnsupportedOperationException(message));
-            }
+        if (message.message() instanceof RegisterBookieRequest req) {
+            final RegisterBookieReply.Builder reply = RegisterBookieReply.newBuilder();
+            reply.setExist(!state.registerBookie(req.getService()));
+            final ByteString content =
+                    BufferUtils.byteStringDoShade(reply.build().toByteString());
+            return CompletableFuture.completedFuture(Message.valueOf(content));
+        } else {
+            final String exMsg = ExceptionMessageBuilder.exMsg("Unsupported readonly request")
+                    .kv("requestType", message.type())
+                    .toString();
+            return CompletableFuture.failedFuture(new UnsupportedOperationException(exMsg));
         }
     }
 }

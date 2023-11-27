@@ -24,12 +24,11 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.tisonkun.morax.proto.config.ControllerServerConfig;
-import org.tisonkun.morax.proto.controller.ListServicesReply;
-import org.tisonkun.morax.proto.controller.ListServicesRequest;
-import org.tisonkun.morax.proto.controller.RegisterServiceReply;
-import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
-import org.tisonkun.morax.proto.controller.ServiceInfoProto;
-import org.tisonkun.morax.proto.controller.ServiceType;
+import org.tisonkun.morax.proto.controller.ListBookiesReply;
+import org.tisonkun.morax.proto.controller.ListBookiesRequest;
+import org.tisonkun.morax.proto.controller.RegisterBookieReply;
+import org.tisonkun.morax.proto.controller.RegisterBookieRequest;
+import org.tisonkun.morax.proto.controller.ServiceProto;
 
 class ControllerTest {
     @Test
@@ -41,27 +40,22 @@ class ControllerTest {
         try {
             controller.startUp();
 
-            final var reply0 = controller.listServices(ListServicesRequest.newBuilder()
-                    .addServiceType(ServiceType.Bookie)
-                    .build());
-            assertThat(reply0).isEqualTo(ListServicesReply.newBuilder().build());
+            final var reply0 =
+                    controller.listServices(ListBookiesRequest.newBuilder().build());
+            assertThat(reply0).isEqualTo(ListBookiesReply.newBuilder().build());
 
-            final ServiceInfoProto serviceInfoProto = ServiceInfoProto.newBuilder()
-                    .setType(ServiceType.Bookie)
-                    .setTarget("localhost:8080")
-                    .build();
+            final ServiceProto serviceProto =
+                    ServiceProto.newBuilder().setTarget("localhost:8080").build();
 
-            final var reply1 = controller.registerService(RegisterServiceRequest.newBuilder()
-                    .setServiceInfo(serviceInfoProto)
-                    .build());
-            assertThat(reply1).isEqualTo(RegisterServiceReply.newBuilder().build());
+            final var reply1 = controller.registerService(
+                    RegisterBookieRequest.newBuilder().setService(serviceProto).build());
+            assertThat(reply1).isEqualTo(RegisterBookieReply.newBuilder().build());
 
-            final var reply2 = controller.listServices(ListServicesRequest.newBuilder()
-                    .addServiceType(ServiceType.Bookie)
-                    .build());
+            final var reply2 =
+                    controller.listServices(ListBookiesRequest.newBuilder().build());
             assertThat(reply2)
-                    .isEqualTo(ListServicesReply.newBuilder()
-                            .addServiceInfo(serviceInfoProto)
+                    .isEqualTo(ListBookiesReply.newBuilder()
+                            .addService(serviceProto)
                             .build());
         } finally {
             controller.shutDown();

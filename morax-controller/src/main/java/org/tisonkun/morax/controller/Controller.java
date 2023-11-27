@@ -42,11 +42,11 @@ import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.util.NetUtils;
 import org.tisonkun.morax.proto.config.ControllerServerConfig;
 import org.tisonkun.morax.proto.controller.ControllerGrpc;
-import org.tisonkun.morax.proto.controller.ListServicesReply;
-import org.tisonkun.morax.proto.controller.ListServicesRequest;
-import org.tisonkun.morax.proto.controller.RegisterServiceReply;
-import org.tisonkun.morax.proto.controller.RegisterServiceRequest;
-import org.tisonkun.morax.proto.controller.RequestUnion;
+import org.tisonkun.morax.proto.controller.ControllerRequestType;
+import org.tisonkun.morax.proto.controller.ListBookiesReply;
+import org.tisonkun.morax.proto.controller.ListBookiesRequest;
+import org.tisonkun.morax.proto.controller.RegisterBookieReply;
+import org.tisonkun.morax.proto.controller.RegisterBookieRequest;
 
 @Slf4j
 public class Controller extends AbstractIdleService {
@@ -111,25 +111,23 @@ public class Controller extends AbstractIdleService {
         log.info("Controller has been shutdown.");
     }
 
-    public RegisterServiceReply registerService(RegisterServiceRequest request) throws IOException {
-        final RequestUnion requestUnion =
-                RequestUnion.newBuilder().setRegisterService(request).build();
-        final RaftClientReply reply = this.raftClient.io().send(new ProtoMessage(requestUnion));
-        return RegisterServiceReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
+    public RegisterBookieReply registerService(RegisterBookieRequest request) throws IOException {
+        final RequestMessage message = new RequestMessage(ControllerRequestType.RegisterBookie, request);
+        final RaftClientReply reply = this.raftClient.io().send(message);
+        return RegisterBookieReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
-    public ListServicesReply listServices(ListServicesRequest request) throws IOException {
-        final RequestUnion requestUnion =
-                RequestUnion.newBuilder().setListServices(request).build();
-        final RaftClientReply reply = this.raftClient.io().sendReadOnly(new ProtoMessage(requestUnion));
-        return ListServicesReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
+    public ListBookiesReply listServices(ListBookiesRequest request) throws IOException {
+        final RequestMessage message = new RequestMessage(ControllerRequestType.ListBookies, request);
+        final RaftClientReply reply = this.raftClient.io().sendReadOnly(message);
+        return ListBookiesReply.parseFrom(reply.getMessage().getContent().asReadOnlyByteBuffer());
     }
 
     private class GrpcServiceAdapter extends ControllerGrpc.ControllerImplBase {
         @Override
-        public void listServices(ListServicesRequest request, StreamObserver<ListServicesReply> responseObserver) {
+        public void listBookies(ListBookiesRequest request, StreamObserver<ListBookiesReply> responseObserver) {
             try {
-                final ListServicesReply reply = Controller.this.listServices(request);
+                final ListBookiesReply reply = Controller.this.listServices(request);
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             } catch (Exception e) {
@@ -138,10 +136,10 @@ public class Controller extends AbstractIdleService {
         }
 
         @Override
-        public void registerService(
-                RegisterServiceRequest request, StreamObserver<RegisterServiceReply> responseObserver) {
+        public void registerBookie(
+                RegisterBookieRequest request, StreamObserver<RegisterBookieReply> responseObserver) {
             try {
-                final RegisterServiceReply reply = Controller.this.registerService(request);
+                final RegisterBookieReply reply = Controller.this.registerService(request);
                 responseObserver.onNext(reply);
                 responseObserver.onCompleted();
             } catch (Exception e) {

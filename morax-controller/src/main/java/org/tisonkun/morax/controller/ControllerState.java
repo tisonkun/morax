@@ -20,48 +20,39 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
-import org.tisonkun.morax.proto.controller.ServiceInfoProto;
-import org.tisonkun.morax.proto.controller.ServiceType;
+import org.tisonkun.morax.proto.controller.ServiceProto;
 
 @ThreadSafe
 public class ControllerState implements Serializable {
     @Serial
     private static final long serialVersionUID = 42L;
 
-    private final ReentrantReadWriteLock servicesLock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock bookiesLock = new ReentrantReadWriteLock();
 
-    @GuardedBy("servicesLock")
-    private final Collection<ServiceInfoProto> services = new HashSet<>();
+    @GuardedBy("bookiesLock")
+    private final Collection<ServiceProto> bookies = new HashSet<>();
 
     private final AtomicLong ledgerIdGen = new AtomicLong();
 
-    public Collection<ServiceInfoProto> listServices(List<ServiceType> serviceTypes) {
-        servicesLock.readLock().lock();
+    public Collection<ServiceProto> listBookies() {
+        bookiesLock.readLock().lock();
         try {
-            final Set<ServiceInfoProto> result = new HashSet<>();
-            for (ServiceInfoProto serviceInfo : services) {
-                if (serviceTypes.contains(serviceInfo.getType())) {
-                    result.add(serviceInfo);
-                }
-            }
-            return result;
+            return new HashSet<>(bookies);
         } finally {
-            servicesLock.readLock().unlock();
+            bookiesLock.readLock().unlock();
         }
     }
 
-    public boolean registerService(ServiceInfoProto serviceInfo) {
-        servicesLock.writeLock().lock();
+    public boolean registerBookie(ServiceProto service) {
+        bookiesLock.writeLock().lock();
         try {
-            return services.add(serviceInfo);
+            return bookies.add(service);
         } finally {
-            servicesLock.writeLock().unlock();
+            bookiesLock.writeLock().unlock();
         }
     }
 

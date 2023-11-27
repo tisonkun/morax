@@ -23,39 +23,30 @@ option java_outer_classname = 'ControllerProtos';
 option java_generate_equals_and_hash = true;
 
 service Controller {
-  rpc registerService(RegisterServiceRequest) returns (RegisterServiceReply) {}
-  rpc listServices(ListServicesRequest) returns (ListServicesReply) {}
+  rpc registerBookie(RegisterBookieRequest) returns (RegisterBookieReply) {}
+  rpc listBookies(ListBookiesRequest) returns (ListBookiesReply) {}
 }
 
-// RequestUnion to distinguish requests across Ratis state machine.
-message RequestUnion {
-  oneof requestUnion {
-      RegisterServiceRequest registerService = 1;
-      ListServicesRequest listServices = 2;
-  }
+enum ControllerRequestType {
+  RegisterBookie = 0;
+  ListBookies = 1;
 }
 
-message RegisterServiceRequest {
-  ServiceInfoProto serviceInfo = 1;
+message RegisterBookieRequest {
+  ServiceProto service = 1;
 }
 
-message RegisterServiceReply {
+message RegisterBookieReply {
   bool exist = 1;
 }
 
-message ListServicesRequest {
-  repeated ServiceType serviceType = 1;
+message ListBookiesRequest {
 }
 
-message ListServicesReply {
-  repeated ServiceInfoProto serviceInfo = 1;
+message ListBookiesReply {
+  repeated ServiceProto service = 1;
 }
 
-enum ServiceType {
-  Bookie = 0;
-}
-
-message ServiceInfoProto {
-  ServiceType type = 1;
-  string target = 2;
+message ServiceProto {
+  string target = 1;
 }
