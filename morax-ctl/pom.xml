@@ -28,7 +28,7 @@
         <relativePath>../morax-parent/pom.xml</relativePath>
     </parent>
 
-    <artifactId>morax-command</artifactId>
+    <artifactId>morax-ctl</artifactId>
 
     <properties>
         <spring-boot-maven-plugin.version>3.1.4</spring-boot-maven-plugin.version>

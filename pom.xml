@@ -68,7 +68,7 @@
         <module>morax-bookie</module>
         <module>morax-controller</module>
         <module>morax-proto</module>
-        <module>morax-command</module>
+        <module>morax-ctl</module>
     </modules>
 
     <build>
