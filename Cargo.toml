@@ -1,0 +1,107 @@
+# Copyright 2024 tison <wander4096@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[workspace]
+members = [
+  "api/kafka-api",
+  "api/protos",
+  "api/wal-client",
+  "cmd/morax",
+  "crates/kafka-broker",
+  "crates/meta",
+  "crates/runtime",
+  "crates/server",
+  "crates/storage",
+  "crates/telemetry",
+  "crates/version",
+  "crates/wal-broker",
+  "tests/rdkafka",
+  "tests/rskafka",
+  "tests/toolkit",
+  "tests/wal",
+  "xtask",
+]
+
+resolver = "2"
+
+[workspace.package]
+authors = ["tison <wander4096@gmail.com>"]
+edition = "2021"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/tisonkun/morax/"
+version = "0.1.0"
+
+[workspace.dependencies]
+backon = { version = "1.0", features = ["tokio-sleep"] }
+build-data = { version = "0.2" }
+byteorder = { version = "1.5" }
+clap = { version = "4.5", features = ["derive"] }
+const_format = { version = "0.2" }
+ctrlc = "3.4"
+error-stack = { version = "0.5" }
+fastrace = { version = "0.7", features = ["enable"] }
+futures = "0.3"
+gix-discover = "0.35"
+insta = { version = "1.38", features = ["json"] }
+latches = { version = "0.2", features = ["task"] }
+local-ip-address = "0.6"
+log = { version = "0.4", features = ["kv_unstable_serde", "serde"] }
+logforth = { version = "0.12", features = ["env-filter"] }
+mime = { version = "0.3" }
+opendal = { version = "0.50" }
+pin-project = "1.1"
+poem = { version = "3.0", features = ["compression", "rustls"] }
+regex = "1.10"
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+scopeguard = "1.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+shadow-rs = { version = "0.35" }
+sqlx = { version = "0.8", features = [
+  "json",
+  "postgres",
+  "runtime-tokio-rustls",
+  "uuid",
+] }
+tempfile = "3.12"
+test-harness = "0.3"
+testcontainers = { version = "0.23", features = ["blocking"] }
+thiserror = "1.0"
+tokio = { version = "1.38", features = ["full"] }
+tokio-util = { version = "0.7", features = ["compat"] }
+toml = "0.8"
+url = "2.5"
+uuid = { version = "1.8", features = ["v4"] }
+
+# workspace dependencies
+kafka-api = { path = "api/kafka-api" }
+morax-kafka-broker = { path = "crates/kafka-broker" }
+morax-meta = { path = "crates/meta" }
+morax-protos = { path = "api/protos" }
+morax-runtime = { path = "crates/runtime" }
+morax-server = { path = "crates/server" }
+morax-storage = { path = "crates/storage" }
+morax-telemetry = { path = "crates/telemetry" }
+morax-version = { path = "crates/version" }
+morax-wal-broker = { path = "crates/wal-broker" }
+morax-wal-client = { path = "api/wal-client" }
+tests-toolkit = { path = "tests/toolkit" }
+
+[workspace.lints.rust]
+unknown_lints = "deny"
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+dbg_macro = "deny"

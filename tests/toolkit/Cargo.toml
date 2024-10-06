@@ -1,0 +1,41 @@
+# Copyright 2024 tison <wander4096@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+[package]
+name = "tests-toolkit"
+publish = false
+
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+local-ip-address = { workspace = true }
+morax-protos = { workspace = true }
+morax-runtime = { workspace = true, features = ["test"] }
+morax-server = { workspace = true }
+opendal = { workspace = true, features = ["services-s3"] }
+regex = { workspace = true }
+scopeguard = { workspace = true }
+serde = { workspace = true }
+sqlx = { workspace = true }
+tempfile = { workspace = true }
+testcontainers = { workspace = true }
+toml = { workspace = true }
+url = { workspace = true }
+
+[lints]
+workspace = true
