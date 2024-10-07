@@ -45,6 +45,8 @@ version = "0.1.0"
 
 [workspace.dependencies]
 backon = { version = "1.0", features = ["tokio-sleep"] }
+base64 = { version = "0.22" }
+better-panic = { version = "0.3" }
 build-data = { version = "0.2" }
 byteorder = { version = "1.5" }
 clap = { version = "4.5", features = ["derive"] }
@@ -52,6 +54,7 @@ const_format = { version = "0.2" }
 ctrlc = "3.4"
 error-stack = { version = "0.5" }
 fastrace = { version = "0.7", features = ["enable"] }
+flexbuffers = { version = "2.0" }
 futures = "0.3"
 gix-discover = "0.35"
 insta = { version = "1.38", features = ["json"] }

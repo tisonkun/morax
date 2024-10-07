@@ -108,7 +108,7 @@ mod test {
 
         for _ in 0..100 {
             let w = wg.clone();
-            let _drop = test_runtime().spawn(async move {
+            test_runtime().spawn(async move {
                 drop(w);
             });
         }

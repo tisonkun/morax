@@ -50,6 +50,7 @@ impl TopicStorage {
         records: Vec<u8>,
     ) -> Result<String, StorageError> {
         let op = self.op()?;
+        // TODO(tisonkun): whether use a sequential number rather than a UUID
         let split_id = uuid::Uuid::new_v4();
         let split_url = format!("{topic_name}/{partition_id}/{split_id}");
         op.write(&split_url, records)

@@ -230,6 +230,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
+name = "better-panic"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fa9e1d11a268684cbd90ed36370d7577afb6c62d912ddff5c15fc34343e5036"
+dependencies = [
+ "backtrace",
+ "console",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -896,6 +906,19 @@ checksum = "324a1be68054ef05ad64b861cc9eaf1d623d2d8cb25b4bf2cb9cdd902b4bf253"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
+]
+
+[[package]]
+name = "flexbuffers"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15d14128f06405808ce75bfebe11e9b0f9da18719ede6d7bdb1702d6bfe0f7e8"
+dependencies = [
+ "bitflags 1.3.2",
+ "byteorder",
+ "num_enum",
+ "serde",
+ "serde_derive",
 ]
 
 [[package]]
@@ -1989,6 +2012,7 @@ dependencies = [
 name = "morax-runtime"
 version = "0.1.0"
 dependencies = [
+ "better-panic",
  "error-stack",
  "fastrace",
  "futures",
@@ -2054,7 +2078,9 @@ dependencies = [
 name = "morax-wal-broker"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "error-stack",
+ "flexbuffers",
  "log",
  "mime",
  "morax-meta",
@@ -2062,6 +2088,7 @@ dependencies = [
  "morax-runtime",
  "morax-storage",
  "poem",
+ "serde",
  "serde_json",
  "thiserror",
 ]
@@ -2512,20 +2539,6 @@ name = "pollster"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22686f4785f02a4fcc856d3b3bb19bf6c8160d103f7a99cc258bddd0251dc7f2"
-dependencies = [
- "pollster-macro",
-]
-
-[[package]]
-name = "pollster-macro"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ea78f0ef4193055a4b09814ce6bcb572ad1174d6023e2f00a9ea1a798d18d301"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
 
 [[package]]
 name = "powerfmt"
@@ -4337,6 +4350,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 name = "wal-tests"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "insta",
  "log",
  "morax-protos",
