@@ -14,6 +14,8 @@
 
 use std::sync::Arc;
 
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use error_stack::Result;
 use error_stack::ResultExt;
 use morax_meta::CommitRecordBatchesRequest;
@@ -24,11 +26,20 @@ use morax_protos::rpc::AppendLogRequest;
 use morax_protos::rpc::AppendLogResponse;
 use morax_protos::rpc::CreateLogRequest;
 use morax_protos::rpc::CreateLogResponse;
+use morax_protos::rpc::Entry;
 use morax_protos::rpc::ReadLogRequest;
 use morax_protos::rpc::ReadLogResponse;
 use morax_storage::TopicStorage;
+use serde::Deserialize;
+use serde::Serialize;
 
 use crate::BrokerError;
+
+// TODO(tisonkun): figure out whether flexbuffers is the proper format
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct EntryData {
+    data: Vec<u8>,
+}
 
 #[derive(Debug, Clone)]
 pub struct WALBroker {
@@ -82,17 +93,32 @@ impl WALBroker {
             .await
             .change_context_lazy(make_error)?;
 
-        let mut data = vec![];
+        let mut entries = vec![];
         for split in splits {
             debug_assert_eq!(&split.topic_name, &topic.name);
             debug_assert_eq!(split.partition_id, 0);
-            let mut part = topic_storage
+            let data = topic_storage
                 .read_at(&split.topic_name, split.partition_id, &split.split_id)
                 .await
                 .change_context_lazy(make_error)?;
-            data.append(&mut part);
+            let deserializer =
+                flexbuffers::Reader::get_root(data.as_slice()).change_context_lazy(|| {
+                    BrokerError("failed to deserialize entry data".to_string())
+                })?;
+            let entry_data =
+                Vec::<EntryData>::deserialize(deserializer).change_context_lazy(|| {
+                    BrokerError("failed to deserialize entry data".to_string())
+                })?;
+            for (i, entry_data) in entry_data.into_iter().enumerate() {
+                if split.start_offset + i as i64 >= request.offset {
+                    entries.push(Entry {
+                        index: Some(split.start_offset + i as i64),
+                        data: BASE64_STANDARD.encode(&entry_data.data),
+                    });
+                }
+            }
         }
-        Ok(ReadLogResponse { data })
+        Ok(ReadLogResponse { entries })
     }
 
     pub async fn append(
@@ -109,8 +135,28 @@ impl WALBroker {
             .change_context_lazy(make_error)?;
         let topic_storage = TopicStorage::new(topic.properties.0.storage);
 
+        let entry_cnt = request.entries.len();
+        let entry_data = {
+            let mut entry_data = vec![];
+            for entry in request.entries.into_iter() {
+                entry_data.push(EntryData {
+                    data: BASE64_STANDARD
+                        .decode(entry.data.as_bytes())
+                        .change_context_lazy(|| {
+                            BrokerError(format!("failed to decode base64: {:?}", entry.data))
+                        })?,
+                });
+            }
+            let mut serializer = flexbuffers::FlexbufferSerializer::new();
+            entry_data
+                .serialize(&mut serializer)
+                .change_context_lazy(|| {
+                    BrokerError("failed to serialize entry data".to_string())
+                })?;
+            serializer.take_buffer()
+        };
         let split_id = topic_storage
-            .write_to(&topic.name, 0, request.data)
+            .write_to(&topic.name, 0, entry_data)
             .await
             .change_context_lazy(make_error)?;
 
@@ -119,15 +165,14 @@ impl WALBroker {
             .commit_record_batches(CommitRecordBatchesRequest {
                 topic_name: name.clone(),
                 partition_id: 0,
-                record_len: request.entry_cnt,
+                record_len: entry_cnt as i32,
                 split_id,
             })
             .await
             .change_context_lazy(make_error)?;
 
         Ok(AppendLogResponse {
-            start_offset,
-            end_offset,
+            offsets: start_offset..end_offset,
         })
     }
 }

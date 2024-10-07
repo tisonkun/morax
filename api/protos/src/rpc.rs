@@ -12,10 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::ops::Range;
+
 use serde::Deserialize;
 use serde::Serialize;
 
 use crate::property::TopicProps;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Entry {
+    /// Index of this log entry, assigned by the broker when the message is published. Guaranteed
+    /// to be unique within the topic. It must not be populated by the publisher in a write
+    /// call.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub index: Option<i64>,
+    /// A padded, base64-encoded string of bytes, encoded with a URL and filename safe alphabet
+    /// (sometimes referred to as "web-safe" or "base64url"). Defined by [RFC4648].
+    ///
+    /// [RFC4648]: https://datatracker.ietf.org/doc/html/rfc4648
+    pub data: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateLogRequest {
@@ -31,14 +47,13 @@ pub struct CreateLogResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppendLogRequest {
     pub name: String,
-    pub data: Vec<u8>,
-    pub entry_cnt: i32,
+    pub entries: Vec<Entry>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppendLogResponse {
-    pub start_offset: i64,
-    pub end_offset: i64,
+    /// The half-open offset range of the appended entry.
+    pub offsets: Range<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -47,18 +62,9 @@ pub struct ReadLogRequest {
     pub offset: i64,
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ReadLogResponse {
-    pub data: Vec<u8>,
-}
-
-// TODO(tisonkun): adopts bytes debug fmt or find other robust ways
-impl std::fmt::Debug for ReadLogResponse {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ReadLogResponse")
-            .field("data", &String::from_utf8_lossy(&self.data))
-            .finish()
-    }
+    pub entries: Vec<Entry>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

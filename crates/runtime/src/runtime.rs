@@ -17,7 +17,6 @@
 use std::any::type_name;
 use std::future::Future;
 use std::panic::resume_unwind;
-use std::panic::AssertUnwindSafe;
 use std::sync::atomic::AtomicUsize;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
@@ -26,7 +25,6 @@ use std::time::Duration;
 use fastrace::future::FutureExt as _;
 use fastrace::Span;
 use futures::ready;
-use futures::FutureExt as _;
 
 static RUNTIME_ID: AtomicUsize = AtomicUsize::new(0);
 
@@ -42,51 +40,29 @@ impl Runtime {
         Builder::default()
     }
 
-    /// Spawn a future and execute it in this thread pool
+    /// Spawn a future and execute it in this thread pool.
     ///
-    /// Similar to tokio::runtime::Runtime::spawn()
-    #[must_use = "this task may panic, join it to properly observe panics"]
+    /// Similar to [`tokio::runtime::Runtime::spawn`].
     pub fn spawn<F>(&self, future: F) -> JoinHandle<F::Output>
     where
         F: Future + Send + 'static,
         F::Output: Send + 'static,
     {
         let name = type_name::<F>();
-        let catch_unwind = async {
-            AssertUnwindSafe(future)
-                .catch_unwind()
-                .await
-                .map_err(|payload| -> ! {
-                    log::error!("task panicked: {:?}", payload);
-                    crate::shutdown();
-                    resume_unwind(payload)
-                })
-                .into_ok()
-        };
-        JoinHandle::new(
-            self.runtime
-                .spawn(catch_unwind.in_span(Span::enter_with_local_parent(name))),
-        )
+        let handle = self
+            .runtime
+            .spawn(future.in_span(Span::enter_with_local_parent(name)));
+        JoinHandle::new(handle)
     }
 
     /// Run the provided function on an executor dedicated to blocking
     /// operations.
-    #[must_use = "this task may panic, join it to properly observe panics"]
     pub fn spawn_blocking<F, R>(&self, func: F) -> JoinHandle<R>
     where
         F: FnOnce() -> R + Send + 'static,
         R: Send + 'static,
     {
-        let catch_unwind = || {
-            std::panic::catch_unwind(AssertUnwindSafe(func))
-                .map_err(|payload| -> ! {
-                    log::error!("task panicked: {:?}", payload);
-                    crate::shutdown();
-                    resume_unwind(payload)
-                })
-                .into_ok()
-        };
-        JoinHandle::new(self.runtime.spawn_blocking(catch_unwind))
+        JoinHandle::new(self.runtime.spawn_blocking(func))
     }
 
     /// Run a future to complete, this is the runtime entry point
@@ -133,7 +109,6 @@ impl<R> Future for JoinHandle<R> {
             Ok(val) => std::task::Poll::Ready(Ok(val)),
             Err(err) => {
                 if err.is_panic() {
-                    crate::shutdown();
                     resume_unwind(err.into_panic())
                 } else {
                     std::task::Poll::Ready(Err(CanceledError))

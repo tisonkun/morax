@@ -69,10 +69,6 @@ pub async fn start_broker(
                 log::info!("Morax Server is closing");
                 return Ok(());
             }
-            _ = morax_runtime::wait_shutdown() => {
-                log::info!("Morax Server is shutting down");
-                return Ok(());
-            }
             socket = broker_listener.accept() => socket,
         };
 
@@ -98,10 +94,6 @@ async fn process_packet(
         tokio::select! {
              _ = shutdown.wait() => {
                 log::info!("Morax Server is closing");
-                return Ok(());
-            }
-            _ = morax_runtime::wait_shutdown() => {
-                log::info!("Morax Server is shutting down");
                 return Ok(());
             }
             closed = process_packet_one(&mut socket, &remote_addr, &broker) => {

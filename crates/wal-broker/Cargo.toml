@@ -23,7 +23,9 @@ repository.workspace = true
 version.workspace = true
 
 [dependencies]
+base64 = { workspace = true }
 error-stack = { workspace = true }
+flexbuffers = { workspace = true }
 log = { workspace = true }
 mime = { workspace = true }
 morax-meta = { workspace = true }
@@ -31,6 +33,7 @@ morax-protos = { workspace = true }
 morax-runtime = { workspace = true }
 morax-storage = { workspace = true }
 poem = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 

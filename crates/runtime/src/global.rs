@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::sync::Arc;
 use std::sync::OnceLock;
 
-use latches::task::Latch;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -45,7 +43,6 @@ struct GlobalRuntimes {
     meta_runtime: Runtime,
     data_runtime: Runtime,
     bg_runtime: Runtime,
-    shutdown: Arc<Latch>,
 }
 
 static GLOBAL_RUNTIMES: OnceLock<GlobalRuntimes> = OnceLock::new();
@@ -84,23 +81,31 @@ pub fn init(opts: &RuntimeOptions) {
     GLOBAL_RUNTIMES.get_or_init(|| do_initialize_runtimes(opts));
 }
 
+fn setup_panic_hook() {
+    std::panic::set_hook(Box::new(move |info| {
+        let backtrace = std::backtrace::Backtrace::capture();
+        log::error!("panic occurred: {info}\nbacktrace:\n{backtrace}");
+        better_panic::Settings::auto().create_panic_handler()(info);
+        shutdown();
+    }));
+}
+
 fn do_initialize_runtimes(opts: &RuntimeOptions) -> GlobalRuntimes {
     log::info!("initializing global runtimes: {opts:?}");
+
+    setup_panic_hook();
 
     let api_runtime = make_runtime("api_runtime", "api_thread", opts.api_runtime_threads);
     let exec_runtime = make_runtime("exec_runtime", "exec_thread", opts.exec_runtime_threads);
     let meta_runtime = make_runtime("meta_runtime", "meta_thread", opts.meta_runtime_threads);
     let data_runtime = make_runtime("data_runtime", "data_thread", opts.data_runtime_threads);
     let bg_runtime = make_runtime("bg_runtime", "bg_thread", opts.bg_runtime_threads);
-    let shutdown = Arc::new(Latch::new(1));
-
     GlobalRuntimes {
         api_runtime,
         exec_runtime,
         meta_runtime,
         data_runtime,
         bg_runtime,
-        shutdown,
     }
 }
 
@@ -129,20 +134,12 @@ pub fn bg_runtime() -> &'static Runtime {
 }
 
 pub fn shutdown() {
-    let runtimes = fetch_runtimes_or_default();
-    runtimes.shutdown.count_down();
-}
-
-pub async fn wait_shutdown() {
-    fetch_runtimes_or_default().shutdown.wait().await;
+    log::info!("The Global Runtimes are shutting down.");
+    std::process::exit(1);
 }
 
 #[cfg(test)]
 mod tests {
-    use core::panic;
-
-    use pollster::FutureExt;
-
     use super::*;
 
     #[test]
@@ -179,11 +176,5 @@ mod tests {
             });
             assert_eq!(out, "hello")
         }
-    }
-
-    #[test]
-    fn test_task_panic() {
-        let _fut = exec_runtime().spawn(async { panic!("test panic") });
-        wait_shutdown().block_on();
     }
 }

@@ -69,19 +69,25 @@ impl CommandStart {
         };
 
         morax_runtime::init(&config.runtime);
-        ctrlc::set_handler(move || {
-            morax_runtime::shutdown();
-        })
-        .change_context_lazy(|| Error("failed to setup ctrl-c signal handle".to_string()))?;
+        morax_telemetry::init(&config.telemetry);
+
+        error_stack::Report::set_color_mode(error_stack::fmt::ColorMode::None);
+        error_stack::Report::set_charset(error_stack::fmt::Charset::Ascii);
 
         let rt = morax_runtime::make_runtime("morax-main", "morax-main", 1);
         rt.block_on(async move {
-            morax_telemetry::init(&config.telemetry);
             let state = morax_server::start(config.server)
                 .await
                 .change_context_lazy(|| {
                     Error("A fatal error has occurred in Morax server process.".to_string())
                 })?;
+
+            let shutdown_handle = state.shutdown_handle();
+            ctrlc::set_handler(move || {
+                shutdown_handle();
+            })
+            .change_context_lazy(|| Error("failed to setup ctrl-c signal handle".to_string()))?;
+
             state.await_shutdown().await;
             Ok(())
         })

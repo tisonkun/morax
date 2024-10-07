@@ -12,13 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use base64::prelude::BASE64_STANDARD;
+use base64::Engine;
 use insta::assert_compact_debug_snapshot;
 use morax_protos::rpc::AppendLogRequest;
 use morax_protos::rpc::CreateLogRequest;
+use morax_protos::rpc::Entry;
 use morax_protos::rpc::ReadLogRequest;
 use test_harness::test;
 use wal_tests::harness;
 use wal_tests::Testkit;
+
+fn make_entry(payload: &str) -> Entry {
+    Entry {
+        index: None,
+        data: BASE64_STANDARD.encode(payload),
+    }
+}
 
 #[test(harness)]
 async fn test_simple_pubsub(testkit: Testkit) {
@@ -39,17 +49,16 @@ async fn test_simple_pubsub(testkit: Testkit) {
         .client
         .append_log(AppendLogRequest {
             name: name.clone(),
-            data: "0;1;2;3;4;5;6;7;8;9;".as_bytes().to_vec(),
-            entry_cnt: 10,
+            entries: vec![make_entry("0"), make_entry("1")],
         })
         .await
         .unwrap();
-    assert_compact_debug_snapshot!(r, @"Success(AppendLogResponse { start_offset: 0, end_offset: 10 })");
+    assert_compact_debug_snapshot!(r, @"Success(AppendLogResponse { offsets: 0..2 })");
 
     let r = testkit
         .client
         .read_log(ReadLogRequest { name, offset: 0 })
         .await
         .unwrap();
-    assert_compact_debug_snapshot!(r, @r###"Success(ReadLogResponse { data: "0;1;2;3;4;5;6;7;8;9;" })"###);
+    assert_compact_debug_snapshot!(r, @r###"Success(ReadLogResponse { entries: [Entry { index: Some(0), data: "MA==" }, Entry { index: Some(1), data: "MQ==" }] })"###);
 }

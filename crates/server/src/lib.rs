@@ -49,11 +49,18 @@ impl ServerState {
         self.wal_broker_addr
     }
 
+    pub fn shutdown_handle(&self) -> impl Fn() {
+        let shutdown = self.shutdown.clone();
+        move || shutdown.count_down()
+    }
+
     pub fn shutdown(&self) {
-        self.shutdown.count_down();
+        self.shutdown_handle()();
     }
 
     pub async fn await_shutdown(self) {
+        self.shutdown.wait().await;
+
         match futures::future::try_join_all(vec![
             flatten(self.kafka_broker_fut),
             flatten(self.wal_broker_fut),
