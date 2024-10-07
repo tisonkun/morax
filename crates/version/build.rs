@@ -73,5 +73,8 @@ fn main() -> shadow_rs::SdResult<()> {
         // exclude these two large constants that we don't need
         BTreeSet::from([CARGO_METADATA, CARGO_TREE]),
     )?;
+
+    // Ref - https://github.com/rust-lang/cargo/issues/12195.
+    let _ = std::fs::remove_file(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.lock"));
     Ok(())
 }
