@@ -19,6 +19,7 @@ publish = false
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+readme.workspace = true
 repository.workspace = true
 version.workspace = true
 

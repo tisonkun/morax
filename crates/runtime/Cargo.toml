@@ -21,6 +21,7 @@ description = "Global runtimes and async utilities used by Morax"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+readme.workspace = true
 repository.workspace = true
 version.workspace = true
 

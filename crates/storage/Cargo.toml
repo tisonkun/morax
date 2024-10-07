@@ -21,6 +21,7 @@ description = "The Storage Service for Morax that interacts with the different o
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+readme.workspace = true
 repository.workspace = true
 version.workspace = true
 

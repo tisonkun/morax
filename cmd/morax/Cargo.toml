@@ -21,6 +21,7 @@ description = "A message queue and data streaming platform based on cloud native
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
