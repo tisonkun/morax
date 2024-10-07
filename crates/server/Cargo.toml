@@ -21,6 +21,7 @@ description = "The Morax Server that bundles all the broker services into one fa
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+readme.workspace = true
 repository.workspace = true
 version.workspace = true
 

@@ -21,6 +21,7 @@ description = "A common build helper for Morax that generates the version inform
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
+readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
