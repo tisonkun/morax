@@ -42,7 +42,6 @@ jobs:
       - uses: taiki-e/install-action@v2
         with:
           tool: typos-cli,taplo-cli,hawkeye
-      - run: hawkeye check
       - run: cargo x lint
 
   test:
