@@ -16,6 +16,8 @@
 name = "morax-telemetry"
 publish = true
 
+description = "A telemetry component that collects metrics, logs, and traces for Morax itself"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true

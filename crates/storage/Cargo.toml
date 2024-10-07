@@ -16,6 +16,8 @@
 name = "morax-storage"
 publish = true
 
+description = "The Storage Service for Morax that interacts with the different object storage backends"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true

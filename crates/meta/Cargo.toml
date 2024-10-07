@@ -16,6 +16,8 @@
 name = "morax-meta"
 publish = true
 
+description = "The Meta Service for Morax that manages the metadata with ACID properties"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true

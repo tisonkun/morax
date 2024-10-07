@@ -16,6 +16,11 @@ headerPath = "Apache-2.0.txt"
 
 includes = ['**/*.proto', '**/*.rs', '**/*.yml', '**/*.yaml', '**/*.toml']
 
+excludes = [
+  # Generated files
+  ".github/workflows/release.yml",
+]
+
 [properties]
 copyrightOwner = "tison <wander4096@gmail.com>"
 inceptionYear = 2024

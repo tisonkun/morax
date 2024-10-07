@@ -12,24 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-[package]
-name = "kafka-api"
-version = "0.4.1"
+github: tisonkun
 
-description = "Manual implementation of Apache Kafka API in Rust."
-documentation = "https://docs.rs/kafka-api"
-homepage = "https://github.com/tisonkun/morax/tree/main/api/kafka-api"
-publish = true
-readme = "README.md"
-repository = "https://github.com/tisonkun/morax/"
-
-authors.workspace = true
-edition.workspace = true
-license.workspace = true
-
-[dependencies]
-byteorder = { workspace = true }
-uuid = { workspace = true }
-
-[lints]
-workspace = true

@@ -16,6 +16,8 @@
 name = "morax-wal-client"
 publish = true
 
+description = "A client for Morax WAL Service broker"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true

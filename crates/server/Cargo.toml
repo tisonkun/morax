@@ -16,6 +16,8 @@
 name = "morax-server"
 publish = true
 
+description = "The Morax Server that bundles all the broker services into one facade"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
