@@ -16,6 +16,8 @@
 name = "morax-protos"
 publish = true
 
+description = "Shared plain old data structures for Morax"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true

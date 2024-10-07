@@ -16,6 +16,8 @@
 name = "morax-kafka-broker"
 publish = true
 
+description = "The Apache Kafka broker layer for Morax"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true

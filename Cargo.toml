@@ -89,18 +89,18 @@ url = "2.5"
 uuid = { version = "1.8", features = ["v4"] }
 
 # workspace dependencies
-kafka-api = { path = "api/kafka-api" }
-morax-kafka-broker = { path = "crates/kafka-broker" }
-morax-meta = { path = "crates/meta" }
-morax-protos = { path = "api/protos" }
-morax-runtime = { path = "crates/runtime" }
-morax-server = { path = "crates/server" }
-morax-storage = { path = "crates/storage" }
-morax-telemetry = { path = "crates/telemetry" }
-morax-version = { path = "crates/version" }
-morax-wal-broker = { path = "crates/wal-broker" }
-morax-wal-client = { path = "api/wal-client" }
-tests-toolkit = { path = "tests/toolkit" }
+kafka-api = { version = "0.4.1", path = "api/kafka-api" }
+morax-kafka-broker = { version = "0.1.0", path = "crates/kafka-broker" }
+morax-meta = { version = "0.1.0", path = "crates/meta" }
+morax-protos = { version = "0.1.0", path = "api/protos" }
+morax-runtime = { version = "0.1.0", path = "crates/runtime" }
+morax-server = { version = "0.1.0", path = "crates/server" }
+morax-storage = { version = "0.1.0", path = "crates/storage" }
+morax-telemetry = { version = "0.1.0", path = "crates/telemetry" }
+morax-version = { version = "0.1.0", path = "crates/version" }
+morax-wal-broker = { version = "0.1.0", path = "crates/wal-broker" }
+morax-wal-client = { version = "0.1.0", path = "api/wal-client" }
+tests-toolkit = { version = "0.1.0", path = "tests/toolkit" }
 
 [workspace.lints.rust]
 unknown_lints = "deny"
@@ -108,3 +108,26 @@ unsafe_code = "deny"
 
 [workspace.lints.clippy]
 dbg_macro = "deny"
+
+[workspace.metadata.release]
+pre-release-commit-message = "chore: release v{{version}}"
+shared-version = true
+sign-tag = true
+tag-name = "v{{version}}"
+
+# Config for 'cargo dist'
+[workspace.metadata.dist]
+cargo-dist-version = "0.12.0"
+ci = ["github"]
+installers = ["shell"]
+pr-run-mode = "plan"
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "x86_64-pc-windows-msvc",
+]
+
+[profile.dist]
+inherits = "release"
+lto = "thin"

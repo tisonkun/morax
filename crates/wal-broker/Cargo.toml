@@ -16,6 +16,8 @@
 name = "morax-wal-broker"
 publish = true
 
+description = "The WAL Service broker layer for Morax"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true

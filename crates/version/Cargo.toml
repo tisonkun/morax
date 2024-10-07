@@ -16,6 +16,8 @@
 name = "morax-version"
 publish = true
 
+description = "A common build helper for Morax that generates the version information"
+
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
