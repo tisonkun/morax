@@ -13,7 +13,7 @@
 # limitations under the License.
 
 [package]
-name = "morax"
+name = "morax-cli"
 publish = true
 
 description = "A message queue and data streaming platform based on cloud native services."
@@ -23,6 +23,11 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 version.workspace = true
+
+[[bin]]
+doc = false
+name = "morax"
+path = "src/main.rs"
 
 [dependencies]
 clap = { workspace = true }
