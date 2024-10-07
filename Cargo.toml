@@ -125,7 +125,8 @@ targets = [
   "aarch64-apple-darwin",
   "x86_64-apple-darwin",
   "x86_64-unknown-linux-gnu",
-  "x86_64-pc-windows-msvc",
+  # TODO(tisonkun): figure out how to build on windows and make a regression coverage
+  # "x86_64-pc-windows-msvc",
 ]
 
 [profile.dist]
