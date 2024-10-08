@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod testkit;
-
 use std::time::Duration;
 
 use rdkafka::admin::NewTopic;
@@ -22,9 +20,9 @@ use rdkafka::consumer::Consumer;
 use rdkafka::producer::FutureRecord;
 use rdkafka::util::Timeout;
 use rdkafka::Message;
+use rdkafka_tests::harness;
+use rdkafka_tests::Testkit;
 use test_harness::test;
-use testkit::harness;
-use testkit::Testkit;
 
 #[test(harness)]
 async fn test_simple_pubsub(testkit: Testkit) {
