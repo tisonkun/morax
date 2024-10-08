@@ -23,7 +23,7 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
-[dependencies]
+[dev-dependencies]
 log = { workspace = true }
 morax-protos = { workspace = true }
 morax-runtime = { workspace = true, features = ["test"] }
