@@ -23,6 +23,9 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.dist]
+dist = false
+
 [dependencies]
 log = { workspace = true }
 morax-protos = { workspace = true }

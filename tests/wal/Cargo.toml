@@ -23,6 +23,9 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.dist]
+dist = false
+
 [dependencies]
 base64 = { workspace = true }
 log = { workspace = true }
