@@ -23,8 +23,9 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
-[dependencies]
+[dev-dependencies]
 base64 = { workspace = true }
+insta = { workspace = true }
 log = { workspace = true }
 morax-protos = { workspace = true }
 morax-runtime = { workspace = true, features = ["test"] }
@@ -33,9 +34,6 @@ morax-wal-client = { workspace = true }
 reqwest = { workspace = true }
 test-harness = { workspace = true }
 tests-toolkit = { workspace = true }
-
-[dev-dependencies]
-insta = { workspace = true }
 
 [lints]
 workspace = true
