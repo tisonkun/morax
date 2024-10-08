@@ -23,7 +23,7 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
-[dev-dependencies]
+[dependencies]
 base64 = { workspace = true }
 insta = { workspace = true }
 log = { workspace = true }

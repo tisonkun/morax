@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   check:
-    name: Check
+    name: Check lint
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -44,22 +44,8 @@ jobs:
           tool: typos-cli,taplo-cli,hawkeye
       - run: cargo x lint
 
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        # aligned with the runners used by cargo-dist
-        os: [ ubuntu-20.04, macos-13, windows-2019 ]
-    name: Build
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo x build --locked
-        shell: bash
-
   test:
-    name: Run test
+    name: Run tests with testcontainers
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -73,14 +59,12 @@ jobs:
     if: ${{ always() }}
     needs:
       - check
-      - build
       - test
     steps:
       - name: Guardian
         run: |
           if [[ ! ( \
                  "${{ needs.check.result }}" == "success" \
-              && "${{ needs.build.result }}" == "success" \
               && "${{ needs.test.result }}" == "success" \
               ) ]]; then
             echo "Required jobs haven't been completed successfully."

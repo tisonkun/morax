@@ -122,7 +122,7 @@ ci = "github"
 install-path = "CARGO_HOME"
 install-updater = false
 installers = ["shell"]
-pr-run-mode = "plan"
+pr-run-mode = "upload"
 targets = [
   "aarch64-apple-darwin",
   "x86_64-apple-darwin",
