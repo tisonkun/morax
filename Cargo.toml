@@ -87,6 +87,7 @@ tokio-util = { version = "0.7", features = ["compat"] }
 toml = "0.8"
 url = "2.5"
 uuid = { version = "1.8", features = ["v4"] }
+which = { version = "6.0" }
 
 # workspace dependencies
 kafka-api = { version = "0.4.1", path = "api/kafka-api" }

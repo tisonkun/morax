@@ -85,19 +85,15 @@ impl CommandLint {
 }
 
 fn find_command(cmd: &str) -> StdCommand {
-    let output = StdCommand::new("which")
-        .arg(cmd)
-        .output()
-        .expect("broken command: which");
-    if output.status.success() {
-        let result = String::from_utf8_lossy(&output.stdout);
-        let mut cmd = StdCommand::new(result.trim());
-        cmd.current_dir(env!("CARGO_WORKSPACE_DIR"));
-        cmd
-    } else {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        panic!("{cmd} not found.\nstdout: {}\nstderr: {}", stdout, stderr);
+    match which::which(cmd) {
+        Ok(exe) => {
+            let mut cmd = StdCommand::new(exe);
+            cmd.current_dir(env!("CARGO_WORKSPACE_DIR"));
+            cmd
+        }
+        Err(err) => {
+            panic!("{cmd} not found: {err}");
+        }
     }
 }
 
