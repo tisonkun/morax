@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod testkit;
+
 use std::collections::BTreeMap;
 
 use rskafka::chrono::TimeZone;
@@ -19,9 +21,9 @@ use rskafka::chrono::Utc;
 use rskafka::client::partition::Compression;
 use rskafka::client::partition::UnknownTopicHandling;
 use rskafka::record::Record;
-use rskafka_tests::harness;
-use rskafka_tests::Testkit;
 use test_harness::test;
+use testkit::harness;
+use testkit::Testkit;
 
 #[test(harness)]
 async fn test_simple_pubsub(testkit: Testkit) {

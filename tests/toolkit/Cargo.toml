@@ -23,9 +23,6 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
-[package.metadata.dist]
-dist = false
-
 [dependencies]
 local-ip-address = { workspace = true }
 morax-protos = { workspace = true }
