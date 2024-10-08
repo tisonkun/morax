@@ -115,6 +115,20 @@ shared-version = true
 sign-tag = true
 tag-name = "v{{version}}"
 
+[workspace.metadata.dist]
+cargo-dist-version = "0.22.1"
+ci = "github"
+install-path = "CARGO_HOME"
+install-updater = false
+installers = ["shell"]
+pr-run-mode = "plan"
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "x86_64-pc-windows-msvc",
+]
+
 [profile.dist]
 inherits = "release"
 lto = "thin"
