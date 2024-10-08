@@ -34,8 +34,8 @@ concurrency:
 
 jobs:
   check:
-    name: Check
-    runs-on: ubuntu-latest
+    name: Check lint
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
@@ -45,18 +45,17 @@ jobs:
       - run: cargo x lint
 
   test:
-    name: Build and test
-    runs-on: ubuntu-latest
+    name: Run tests with testcontainers
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: taiki-e/install-action@nextest
-      - run: cargo x build --locked
       - run: cargo x test
 
   required:
     name: Required
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: ${{ always() }}
     needs:
       - check

@@ -25,3 +25,4 @@ version.workspace = true
 
 [dependencies]
 clap = { workspace = true }
+which = { workspace = true }

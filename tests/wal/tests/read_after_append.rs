@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod testkit;
-
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use insta::assert_compact_debug_snapshot;
@@ -22,8 +20,8 @@ use morax_protos::rpc::CreateLogRequest;
 use morax_protos::rpc::Entry;
 use morax_protos::rpc::ReadLogRequest;
 use test_harness::test;
-use testkit::harness;
-use testkit::Testkit;
+use wal_tests::harness;
+use wal_tests::Testkit;
 
 fn make_entry(payload: &str) -> Entry {
     Entry {

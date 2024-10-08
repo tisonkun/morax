@@ -87,6 +87,7 @@ tokio-util = { version = "0.7", features = ["compat"] }
 toml = "0.8"
 url = "2.5"
 uuid = { version = "1.8", features = ["v4"] }
+which = { version = "6.0" }
 
 # workspace dependencies
 kafka-api = { version = "0.4.1", path = "api/kafka-api" }
@@ -114,6 +115,20 @@ pre-release-commit-message = "chore: release v{{version}}"
 shared-version = true
 sign-tag = true
 tag-name = "v{{version}}"
+
+[workspace.metadata.dist]
+cargo-dist-version = "0.22.1"
+ci = "github"
+install-path = "CARGO_HOME"
+install-updater = false
+installers = ["shell"]
+pr-run-mode = "upload"
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "x86_64-pc-windows-msvc",
+]
 
 [profile.dist]
 inherits = "release"
