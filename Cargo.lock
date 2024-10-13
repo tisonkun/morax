@@ -1964,7 +1964,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "morax-cli"
+name = "morax"
 version = "0.1.0"
 dependencies = [
  "clap",

@@ -6,7 +6,7 @@
 
 [discord-badge]: https://img.shields.io/discord/1291345378246922363?logo=discord&label=discord
 [discord-url]: https://discord.gg/RRxbfYGqHM
-[license-badge]: https://img.shields.io/crates/l/morax-cli
+[license-badge]: https://img.shields.io/crates/l/morax
 [license-url]: LICENSE
 [actions-badge]: https://github.com/tisonkun/morax/workflows/CI/badge.svg
 [actions-url]:https://github.com/tisonkun/morax/actions?query=workflow%3ACI
