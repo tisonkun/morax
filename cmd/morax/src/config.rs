@@ -36,26 +36,13 @@ pub struct Config {
     pub runtime: RuntimeOptions,
 }
 
-const fn bind_endpoint(port: u16) -> SocketAddr {
-    let ipaddr = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
-    SocketAddr::new(ipaddr, port)
-}
-
-const fn localhost_endpoint(port: u16) -> SocketAddr {
-    let ipaddr = IpAddr::V4(Ipv4Addr::LOCALHOST);
-    SocketAddr::new(ipaddr, port)
-}
-
-fn postgres_url(user: &str, password: &str, endpoint: &SocketAddr, db: &str) -> String {
-    format!("postgres://{}:{}@{}/{}", user, password, endpoint, db)
-}
-
 impl Default for Config {
     fn default() -> Self {
         Config {
             server: ServerConfig {
                 kafka_broker: KafkaBrokerConfig {
-                    addr: bind_endpoint(9092),
+                    listen_addr: "0.0.0.0:9092".to_string(),
+                    advertise_addr: None,
                     fallback_storage: StorageProps::S3({
                         let mut config = S3Config::default();
                         config.bucket = "test-bucket".to_string();
@@ -67,15 +54,12 @@ impl Default for Config {
                     }),
                 },
                 wal_broker: WALBrokerConfig {
-                    addr: bind_endpoint(8848),
+                    listen_addr: "0.0.0.0:8848".to_string(),
+                    advertise_addr: None,
                 },
                 meta: MetaServiceConfig {
-                    service_url: postgres_url(
-                        "morax",
-                        "my_secret_password",
-                        &localhost_endpoint(5432),
-                        "morax_meta",
-                    ),
+                    service_url: "postgres://morax:my_secret_password@127.0.0.1:5432/morax_meta"
+                        .to_string(),
                 },
             },
             telemetry: TelemetryConfig {

@@ -2049,6 +2049,7 @@ version = "0.1.0"
 dependencies = [
  "error-stack",
  "futures",
+ "local-ip-address",
  "log",
  "mea",
  "morax-kafka-broker",
@@ -3879,7 +3880,6 @@ dependencies = [
 name = "tests-toolkit"
 version = "0.1.0"
 dependencies = [
- "local-ip-address",
  "morax-protos",
  "morax-runtime",
  "morax-server",
