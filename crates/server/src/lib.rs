@@ -18,10 +18,10 @@ use std::time::Duration;
 
 use error_stack::Result;
 use error_stack::ResultExt;
-use latches::task::Latch;
+use mea::latch::Latch;
+use mea::waitgroup::WaitGroup;
 use morax_meta::PostgresMetaService;
 use morax_protos::config::ServerConfig;
-use morax_runtime::wait_group::WaitGroup;
 use poem::listener::Acceptor;
 use poem::listener::Listener;
 

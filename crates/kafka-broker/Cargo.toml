@@ -27,8 +27,8 @@ version.workspace = true
 [dependencies]
 error-stack = { workspace = true }
 kafka-api = { workspace = true }
-latches = { workspace = true }
 log = { workspace = true }
+mea = { workspace = true }
 morax-meta = { workspace = true }
 morax-protos = { workspace = true }
 morax-runtime = { workspace = true }

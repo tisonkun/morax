@@ -98,11 +98,7 @@ fn find_command(cmd: &str) -> StdCommand {
 }
 
 fn ensure_installed(bin: &str, crate_name: &str) {
-    let output = StdCommand::new("which")
-        .arg(bin)
-        .output()
-        .expect("broken command: which");
-    if !output.status.success() {
+    if which::which(bin).is_err() {
         let mut cmd = find_command("cargo");
         cmd.args(["install", crate_name]);
         run_command(cmd);
