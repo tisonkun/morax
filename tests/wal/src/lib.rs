@@ -45,7 +45,7 @@ where
     };
 
     morax_runtime::test_runtime().block_on(async move {
-        let server_addr = format!("http://{}", state.server_state.wal_broker_addr());
+        let server_addr = format!("http://{}", state.server_state.wal_broker_advertise_addr());
         let builder = reqwest::ClientBuilder::new();
         let client = morax_wal_client::HTTPClient::new(server_addr, builder).unwrap();
 

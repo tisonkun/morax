@@ -49,7 +49,7 @@ where
     };
 
     morax_runtime::test_runtime().block_on(async move {
-        let server_addr = state.server_state.kafka_broker_addr().to_string();
+        let server_addr = state.server_state.kafka_broker_advertise_addr().to_string();
         let mut config = rdkafka::config::ClientConfig::new();
         config.set("bootstrap.servers", server_addr);
         let admin = config.create().unwrap();
