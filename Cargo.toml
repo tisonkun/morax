@@ -116,13 +116,21 @@ shared-version = true
 sign-tag = true
 tag-name = "v{{version}}"
 
+# Config for 'cargo dist'
 [workspace.metadata.dist]
+# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
 cargo-dist-version = "0.22.1"
+# CI backends to support
 ci = "github"
+# Path that installers should place binaries in
 install-path = "CARGO_HOME"
+# Whether to install an updater program
 install-updater = false
+# The installers to generate for each app
 installers = ["shell"]
-pr-run-mode = "upload"
+# Which actions to run on pull requests
+pr-run-mode = "plan"
+# Target platforms to build apps for (Rust target-triple syntax)
 targets = [
   "aarch64-apple-darwin",
   "x86_64-apple-darwin",
