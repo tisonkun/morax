@@ -72,11 +72,13 @@ pub fn start_test_server(test_name: &str) -> Option<TestServerState> {
     } = make_test_env_state(test_name)?;
     let host = local_ip_address::local_ip().unwrap();
     let kafka_broker = KafkaBrokerConfig {
-        listen_addr: SocketAddr::new(host, 0),
+        listen_addr: SocketAddr::new(host, 0).to_string(),
+        advertise_addr: None,
         fallback_storage: env_props.storage.clone(),
     };
     let wal_broker = WALBrokerConfig {
-        listen_addr: SocketAddr::new(host, 0),
+        listen_addr: SocketAddr::new(host, 0).to_string(),
+        advertise_addr: None,
     };
     let server_state = morax_runtime::test_runtime()
         .block_on(morax_server::start(ServerConfig {

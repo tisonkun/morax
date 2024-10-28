@@ -12,10 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::IpAddr;
-use std::net::Ipv4Addr;
-use std::net::SocketAddr;
-
 use morax_protos::config::KafkaBrokerConfig;
 use morax_protos::config::LogConfig;
 use morax_protos::config::MetaServiceConfig;

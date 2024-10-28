@@ -14,7 +14,6 @@
 
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Duration;
 
 use error_stack::Result;
 use error_stack::ResultExt;
@@ -22,8 +21,6 @@ use mea::latch::Latch;
 use mea::waitgroup::WaitGroup;
 use morax_meta::PostgresMetaService;
 use morax_protos::config::ServerConfig;
-use poem::listener::Acceptor;
-use poem::listener::Listener;
 
 use crate::kafka::bootstrap_kafka_broker;
 use crate::kafka::KafkaBootstrapContext;
@@ -32,7 +29,7 @@ use crate::wal::WALBootstrapContext;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
-pub struct ServerError(String);
+pub struct ServerError(pub(crate) String);
 
 pub(crate) type ServerFuture<T> = morax_runtime::JoinHandle<Result<T, ServerError>>;
 
@@ -102,9 +99,9 @@ pub async fn start(config: ServerConfig) -> Result<ServerState, ServerError> {
     // initialize wal broker
     let (wal_broker_advertise_addr, wal_broker_fut) = bootstrap_wal_broker(WALBootstrapContext {
         config: config.wal_broker,
-        meta_service,
-        wg,
-        shutdown,
+        meta_service: meta_service.clone(),
+        wg: wg.clone(),
+        shutdown: shutdown.clone(),
     })
     .await?;
 
