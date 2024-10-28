@@ -1970,7 +1970,7 @@ dependencies = [
 
 [[package]]
 name = "morax"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "ctrlc",
@@ -1989,7 +1989,7 @@ dependencies = [
 
 [[package]]
 name = "morax-kafka-broker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "error-stack",
  "kafka-api",
@@ -2007,7 +2007,7 @@ dependencies = [
 
 [[package]]
 name = "morax-meta"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "error-stack",
  "log",
@@ -2021,7 +2021,7 @@ dependencies = [
 
 [[package]]
 name = "morax-protos"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "opendal",
  "serde",
@@ -2029,7 +2029,7 @@ dependencies = [
 
 [[package]]
 name = "morax-runtime"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "better-panic",
  "error-stack",
@@ -2045,7 +2045,7 @@ dependencies = [
 
 [[package]]
 name = "morax-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "error-stack",
  "futures",
@@ -2064,7 +2064,7 @@ dependencies = [
 
 [[package]]
 name = "morax-storage"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "error-stack",
  "morax-protos",
@@ -2075,7 +2075,7 @@ dependencies = [
 
 [[package]]
 name = "morax-telemetry"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "log",
  "logforth",
@@ -2084,7 +2084,7 @@ dependencies = [
 
 [[package]]
 name = "morax-version"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "build-data",
  "const_format",
@@ -2094,7 +2094,7 @@ dependencies = [
 
 [[package]]
 name = "morax-wal-broker"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "error-stack",
@@ -2113,7 +2113,7 @@ dependencies = [
 
 [[package]]
 name = "morax-wal-client"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "backon",
  "error-stack",
@@ -2767,7 +2767,7 @@ dependencies = [
 
 [[package]]
 name = "rdkafka-tests"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "log",
  "morax-protos",
@@ -2973,7 +2973,7 @@ dependencies = [
 
 [[package]]
 name = "rskafka-tests"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "log",
  "morax-protos",
@@ -3878,7 +3878,7 @@ dependencies = [
 
 [[package]]
 name = "tests-toolkit"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "local-ip-address",
  "morax-protos",
@@ -4341,7 +4341,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "wal-tests"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "base64 0.22.1",
  "insta",
@@ -4767,7 +4767,7 @@ checksum = "d135d17ab770252ad95e9a872d365cf3090e3be864a34ab46f48555993efc904"
 
 [[package]]
 name = "x"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "which",

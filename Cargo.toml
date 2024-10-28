@@ -40,7 +40,7 @@ edition = "2021"
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/tisonkun/morax/"
-version = "0.1.0"
+version = "0.1.1"
 
 [workspace.dependencies]
 backon = { version = "1.2", features = ["tokio-sleep"] }
@@ -90,17 +90,17 @@ which = { version = "6.0" }
 
 # workspace dependencies
 kafka-api = { version = "0.4.1", path = "api/kafka-api" }
-morax-kafka-broker = { version = "0.1.0", path = "crates/kafka-broker" }
-morax-meta = { version = "0.1.0", path = "crates/meta" }
-morax-protos = { version = "0.1.0", path = "api/protos" }
-morax-runtime = { version = "0.1.0", path = "crates/runtime" }
-morax-server = { version = "0.1.0", path = "crates/server" }
-morax-storage = { version = "0.1.0", path = "crates/storage" }
-morax-telemetry = { version = "0.1.0", path = "crates/telemetry" }
-morax-version = { version = "0.1.0", path = "crates/version" }
-morax-wal-broker = { version = "0.1.0", path = "crates/wal-broker" }
-morax-wal-client = { version = "0.1.0", path = "api/wal-client" }
-tests-toolkit = { version = "0.1.0", path = "tests/toolkit" }
+morax-kafka-broker = { version = "0.1.1", path = "crates/kafka-broker" }
+morax-meta = { version = "0.1.1", path = "crates/meta" }
+morax-protos = { version = "0.1.1", path = "api/protos" }
+morax-runtime = { version = "0.1.1", path = "crates/runtime" }
+morax-server = { version = "0.1.1", path = "crates/server" }
+morax-storage = { version = "0.1.1", path = "crates/storage" }
+morax-telemetry = { version = "0.1.1", path = "crates/telemetry" }
+morax-version = { version = "0.1.1", path = "crates/version" }
+morax-wal-broker = { version = "0.1.1", path = "crates/wal-broker" }
+morax-wal-client = { version = "0.1.1", path = "api/wal-client" }
+tests-toolkit = { version = "0.1.1", path = "tests/toolkit" }
 
 [workspace.lints.rust]
 unknown_lints = "deny"
