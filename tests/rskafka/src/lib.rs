@@ -46,7 +46,7 @@ where
     };
 
     morax_runtime::test_runtime().block_on(async move {
-        let connection = state.server_state.kafka_broker_addr().to_string();
+        let connection = state.server_state.kafka_broker_advertise_addr().to_string();
         let client = ClientBuilder::new(vec![connection]).build().await.unwrap();
 
         let exit_code = test(Testkit { client }).await.report();

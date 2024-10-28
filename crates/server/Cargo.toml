@@ -28,8 +28,9 @@ version.workspace = true
 [dependencies]
 error-stack = { workspace = true }
 futures = { workspace = true }
-latches = { workspace = true }
+local-ip-address = { workspace = true }
 log = { workspace = true }
+mea = { workspace = true }
 morax-kafka-broker = { workspace = true }
 morax-meta = { workspace = true }
 morax-protos = { workspace = true }

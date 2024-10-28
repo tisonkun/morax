@@ -12,13 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![feature(unwrap_infallible)]
-
-pub use crate::global::*;
-pub use crate::runtime::*;
-
 mod global;
-pub mod scheduled_task;
-pub mod wait_group;
+pub use crate::global::*;
 
 mod runtime;
+pub use crate::runtime::*;
+
+pub mod scheduled_task;

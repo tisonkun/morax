@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::SocketAddr;
-
 use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WALBrokerConfig {
-    pub addr: SocketAddr,
+    pub listen_addr: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub advertise_addr: Option<String>,
 }

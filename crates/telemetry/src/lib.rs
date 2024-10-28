@@ -15,7 +15,6 @@
 use logforth::append;
 use logforth::filter::env::EnvFilterBuilder;
 use logforth::filter::EnvFilter;
-use logforth::layout;
 use logforth::Dispatch;
 use logforth::Logger;
 use morax_protos::config::TelemetryConfig;
@@ -28,8 +27,7 @@ pub fn init(config: &TelemetryConfig) {
         logger = logger.dispatch(
             Dispatch::new()
                 .filter(make_rust_log_filter_with_default_env(&stderr.filter))
-                .layout(layout::TextLayout::default())
-                .append(append::Stderr),
+                .append(append::Stderr::default()),
         );
     }
 
