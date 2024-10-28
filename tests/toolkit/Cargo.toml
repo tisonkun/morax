@@ -16,12 +16,14 @@
 name = "tests-toolkit"
 publish = false
 
-authors.workspace = true
 edition.workspace = true
 license.workspace = true
 readme.workspace = true
 repository.workspace = true
 version.workspace = true
+
+[package.metadata.release]
+release = false
 
 [dependencies]
 local-ip-address = { workspace = true }
