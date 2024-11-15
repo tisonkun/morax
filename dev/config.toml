@@ -16,11 +16,10 @@
 service_url = "postgres://morax:my_secret_password@127.0.0.1:5432/morax_meta"
 
 [server.kafka_broker]
-addr = "0.0.0.0:9092"
+listen_addr = "0.0.0.0:9092"
 
 [server.kafka_broker.fallback_storage]
 scheme = "s3"
-
 bucket = "test-bucket"
 region = "us-east-1"
 endpoint = "http://127.0.0.1:9000"
@@ -28,7 +27,7 @@ access_key_id = "minioadmin"
 secret_access_key = "minioadmin"
 
 [server.wal_broker]
-addr = "0.0.0.0:8848"
+listen_addr = "0.0.0.0:8848"
 
 [telemetry.log.stderr]
 filter = "DEBUG"
