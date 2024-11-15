@@ -63,7 +63,7 @@ impl Broker {
                                 partition_responses.push(PartitionProduceResponse {
                                     error_code: ErrorCode::UNSUPPORTED_FOR_MESSAGE_FORMAT.code(),
                                     error_message: Some(format!(
-                                        "unsupported topic format: {format}"
+                                        "unsupported topic format: {format:?}"
                                     )),
                                     ..Default::default()
                                 });

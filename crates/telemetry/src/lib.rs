@@ -28,7 +28,7 @@ pub fn init(config: &TelemetryConfig) {
         });
     }
 
-    let _ = logger.apply();
+    logger.apply();
 }
 
 fn make_rust_log_filter(filter: &str) -> EnvFilter {

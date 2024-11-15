@@ -83,7 +83,7 @@ impl WALBroker {
             .await
             .change_context_lazy(make_error)?;
         if !matches!(topic.properties.format, TopicFormat::WAL) {
-            return bail!(BrokerError(format!(
+            bail!(BrokerError(format!(
                 "unsupported topic format: {:?}",
                 topic.properties.format
             )));
@@ -142,7 +142,7 @@ impl WALBroker {
             .await
             .change_context_lazy(make_error)?;
         if !matches!(topic.properties.format, TopicFormat::WAL) {
-            return bail!(BrokerError(format!(
+            bail!(BrokerError(format!(
                 "unsupported topic format: {:?}",
                 topic.properties.format
             )));
