@@ -18,6 +18,7 @@ use std::process::ExitCode;
 use morax_protos::config::LogConfig;
 use morax_protos::config::StderrAppenderConfig;
 use morax_protos::config::TelemetryConfig;
+use morax_protos::property::TopicFormat;
 use morax_protos::property::TopicProps;
 use tests_toolkit::make_test_name;
 
@@ -53,6 +54,7 @@ where
             client,
             topic_props: TopicProps {
                 storage: state.env_props.storage,
+                format: TopicFormat::WAL,
             },
         })
         .await

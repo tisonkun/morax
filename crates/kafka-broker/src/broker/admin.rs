@@ -30,6 +30,7 @@ use kafka_api::schemata::metadata_response::MetadataResponse;
 use kafka_api::schemata::metadata_response::MetadataResponseBroker;
 use kafka_api::schemata::metadata_response::MetadataResponsePartition;
 use kafka_api::schemata::metadata_response::MetadataResponseTopic;
+use morax_protos::property::TopicFormat;
 use morax_protos::property::TopicProps;
 
 use crate::broker::Broker;
@@ -143,6 +144,7 @@ impl Broker {
                 partitions: topic.num_partitions.max(1),
                 properties: TopicProps {
                     storage: self.fallback_storage.clone(),
+                    format: TopicFormat::Kafka,
                 },
             };
 

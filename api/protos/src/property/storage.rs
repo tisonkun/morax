@@ -17,7 +17,16 @@ use serde::Serialize;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TopicProps {
+    pub format: TopicFormat,
     pub storage: StorageProps,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TopicFormat {
+    #[serde(rename = "kafka")]
+    Kafka,
+    #[serde(rename = "wal")]
+    WAL,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

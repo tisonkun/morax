@@ -20,6 +20,8 @@ use kafka_api::schemata::produce_request::ProduceRequest;
 use kafka_api::schemata::produce_response::PartitionProduceResponse;
 use kafka_api::schemata::produce_response::ProduceResponse;
 use kafka_api::schemata::produce_response::TopicProduceResponse;
+use morax_meta::Topic;
+use morax_protos::property::TopicFormat;
 use morax_storage::TopicStorage;
 
 use crate::broker::Broker;
@@ -51,7 +53,30 @@ impl Broker {
         for topic in request.topic_data {
             let topic_name = topic.name.clone();
             let topic_storage = match self.meta.get_topics_by_name(topic_name.clone()).await {
-                Ok(topic) => TopicStorage::new(topic.properties.0.storage),
+                Ok(Topic { properties, .. }) => match &properties.format {
+                    TopicFormat::Kafka => TopicStorage::new(properties.0.storage),
+                    format => {
+                        log::error!("unsupported topic format: {format:?}");
+                        let mut partition_responses = vec![];
+                        for partition in topic.partition_data {
+                            if partition.records.is_some() {
+                                partition_responses.push(PartitionProduceResponse {
+                                    error_code: ErrorCode::UNSUPPORTED_FOR_MESSAGE_FORMAT.code(),
+                                    error_message: Some(format!(
+                                        "unsupported topic format: {format}"
+                                    )),
+                                    ..Default::default()
+                                });
+                            }
+                        }
+                        responses.push(TopicProduceResponse {
+                            name: topic_name,
+                            partition_responses,
+                            ..Default::default()
+                        });
+                        continue;
+                    }
+                },
                 Err(err) => {
                     log::error!("malformed record batches: {err:?}");
                     let mut partition_responses = vec![];

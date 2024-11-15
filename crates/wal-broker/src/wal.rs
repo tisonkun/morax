@@ -16,12 +16,14 @@ use std::sync::Arc;
 
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use error_stack::bail;
 use error_stack::Result;
 use error_stack::ResultExt;
 use morax_meta::CommitRecordBatchesRequest;
 use morax_meta::CreateTopicRequest;
 use morax_meta::FetchRecordBatchesRequest;
 use morax_meta::PostgresMetaService;
+use morax_protos::property::TopicFormat;
 use morax_protos::rpc::AppendLogRequest;
 use morax_protos::rpc::AppendLogResponse;
 use morax_protos::rpc::CreateLogRequest;
@@ -80,6 +82,12 @@ impl WALBroker {
             .get_topics_by_name(name.clone())
             .await
             .change_context_lazy(make_error)?;
+        if !matches!(topic.properties.format, TopicFormat::WAL) {
+            return bail!(BrokerError(format!(
+                "unsupported topic format: {:?}",
+                topic.properties.format
+            )));
+        }
         let topic_storage = TopicStorage::new(topic.properties.0.storage);
 
         let splits = self
@@ -133,6 +141,12 @@ impl WALBroker {
             .get_topics_by_name(name.clone())
             .await
             .change_context_lazy(make_error)?;
+        if !matches!(topic.properties.format, TopicFormat::WAL) {
+            return bail!(BrokerError(format!(
+                "unsupported topic format: {:?}",
+                topic.properties.format
+            )));
+        }
         let topic_storage = TopicStorage::new(topic.properties.0.storage);
 
         let entry_cnt = request.entries.len();
