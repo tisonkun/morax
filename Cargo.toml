@@ -59,8 +59,8 @@ gix-discover = { version = "0.36" }
 insta = { version = "1.40", features = ["json"] }
 local-ip-address = { version = "0.6" }
 log = { version = "0.4", features = ["kv_unstable_serde", "serde"] }
-logforth = { version = "0.14" }
-mea = { version = "0.0.4" }
+logforth = { version = "0.18" }
+mea = { version = "0.0.6" }
 mime = { version = "0.3" }
 opendal = { version = "0.50" }
 pin-project = { version = "1.1" }
@@ -70,7 +70,7 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
 scopeguard = { version = "1.2" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-shadow-rs = { version = "0.35.1" }
+shadow-rs = { version = "0.36" }
 sqlx = { version = "0.8", features = [
   "json",
   "postgres",
@@ -80,13 +80,13 @@ sqlx = { version = "0.8", features = [
 tempfile = { version = "3.13" }
 test-harness = { version = "0.3" }
 testcontainers = { version = "0.23", features = ["blocking"] }
-thiserror = { version = "1.0" }
+thiserror = { version = "2.0" }
 tokio = { version = "1.41", features = ["full"] }
 tokio-util = { version = "0.7", features = ["compat"] }
 toml = { version = "0.8" }
 url = { version = "2.5" }
 uuid = { version = "1.11", features = ["v4"] }
-which = { version = "6.0" }
+which = { version = "7.0" }
 
 # workspace dependencies
 kafka-api = { version = "0.4.1", path = "api/kafka-api" }

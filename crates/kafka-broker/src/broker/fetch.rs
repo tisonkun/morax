@@ -26,7 +26,9 @@ use kafka_api::schemata::offset_fetch_response::OffsetFetchResponsePartitions;
 use kafka_api::schemata::offset_fetch_response::OffsetFetchResponseTopic;
 use kafka_api::schemata::offset_fetch_response::OffsetFetchResponseTopics;
 use kafka_api::schemata::request_header::RequestHeader;
+use morax_meta::Topic;
 use morax_meta::TopicPartitionSplit;
+use morax_protos::property::TopicFormat;
 use morax_storage::TopicStorage;
 
 use crate::broker::Broker;
@@ -159,7 +161,26 @@ impl Broker {
             } else {
                 self.meta.get_topics_by_name(topic.topic.clone()).await
             } {
-                Ok(topic) => TopicStorage::new(topic.properties.0.storage),
+                Ok(Topic { properties, .. }) => match &properties.format {
+                    TopicFormat::Kafka => TopicStorage::new(properties.0.storage),
+                    format => {
+                        log::error!("unsupported topic format: {format:?}");
+                        let mut partitions = vec![];
+                        for _ in topic.partitions.iter() {
+                            partitions.push(PartitionData {
+                                error_code: ErrorCode::UNSUPPORTED_FOR_MESSAGE_FORMAT.code(),
+                                ..Default::default()
+                            });
+                        }
+                        responses.push(FetchableTopicResponse {
+                            topic: topic.topic.clone(),
+                            topic_id: topic.topic_id,
+                            partitions,
+                            ..Default::default()
+                        });
+                        continue;
+                    }
+                },
                 Err(err) => {
                     log::error!("failed to fetch topic metadata: {err:?}");
                     let mut partitions = vec![];

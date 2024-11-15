@@ -13,25 +13,22 @@
 // limitations under the License.
 
 use logforth::append;
-use logforth::filter::env::EnvFilterBuilder;
+use logforth::filter::env_filter::EnvFilterBuilder;
 use logforth::filter::EnvFilter;
-use logforth::Dispatch;
-use logforth::Logger;
 use morax_protos::config::TelemetryConfig;
 
 pub fn init(config: &TelemetryConfig) {
-    let mut logger = Logger::new();
+    let mut logger = logforth::builder();
 
     // stderr logger
     if let Some(ref stderr) = config.log.stderr {
-        logger = logger.dispatch(
-            Dispatch::new()
-                .filter(make_rust_log_filter_with_default_env(&stderr.filter))
-                .append(append::Stderr::default()),
-        );
+        logger = logger.dispatch(|d| {
+            d.filter(make_rust_log_filter_with_default_env(&stderr.filter))
+                .append(append::Stderr::default())
+        });
     }
 
-    let _ = logger.apply();
+    logger.apply();
 }
 
 fn make_rust_log_filter(filter: &str) -> EnvFilter {
