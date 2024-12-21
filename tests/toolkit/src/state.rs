@@ -21,8 +21,6 @@ use morax_protos::config::WALBrokerConfig;
 use morax_protos::property::StorageProps;
 use morax_server::ServerState;
 use opendal::Operator;
-use serde::Deserialize;
-use serde::Serialize;
 use sqlx::migrate::MigrateDatabase;
 use url::Url;
 
@@ -42,27 +40,10 @@ pub struct TestEnvState {
     _drop_guards: Vec<DropGuard>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct TestEnvProps {
     pub meta: MetaServiceConfig,
     pub storage: StorageProps,
-}
-
-pub(crate) fn read_test_env_props() -> Option<TestEnvProps> {
-    let file = std::env::var("TEST_ENV_PROPS_FILE").ok()?;
-    let path = std::path::Path::new(&file);
-    let path = if path.is_absolute() {
-        path.canonicalize().unwrap()
-    } else {
-        env!("CARGO_WORKSPACE_DIR")
-            .parse::<std::path::PathBuf>()
-            .unwrap()
-            .join(path)
-            .canonicalize()
-            .unwrap()
-    };
-    let content = std::fs::read_to_string(&path).unwrap();
-    Some(toml::from_str(&content).unwrap())
 }
 
 pub fn start_test_server(test_name: &str) -> Option<TestServerState> {
@@ -99,8 +80,6 @@ pub fn make_test_env_state(test_name: &str) -> Option<TestEnvState> {
 
     let mut props = if option_enabled("SKIP_INTEGRATION") {
         return None;
-    } else if let Some(props) = read_test_env_props() {
-        props
     } else {
         let (props, drop_guards) = make_testcontainers_env_props();
         _drop_guards.extend(drop_guards);

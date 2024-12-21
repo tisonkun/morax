@@ -33,11 +33,8 @@ morax-server = { workspace = true }
 opendal = { workspace = true, features = ["services-s3"] }
 regex = { workspace = true }
 scopeguard = { workspace = true }
-serde = { workspace = true }
 sqlx = { workspace = true }
-tempfile = { workspace = true }
 testcontainers = { workspace = true }
-toml = { workspace = true }
 url = { workspace = true }
 
 [lints]
