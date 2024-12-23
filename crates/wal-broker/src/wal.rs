@@ -16,21 +16,19 @@ use std::sync::Arc;
 
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
-use error_stack::bail;
 use error_stack::Result;
 use error_stack::ResultExt;
 use morax_meta::CommitRecordBatchesRequest;
 use morax_meta::CreateTopicRequest;
 use morax_meta::FetchRecordBatchesRequest;
 use morax_meta::PostgresMetaService;
-use morax_protos::property::TopicFormat;
-use morax_protos::rpc::AppendLogRequest;
-use morax_protos::rpc::AppendLogResponse;
-use morax_protos::rpc::CreateLogRequest;
-use morax_protos::rpc::CreateLogResponse;
-use morax_protos::rpc::Entry;
-use morax_protos::rpc::ReadLogRequest;
-use morax_protos::rpc::ReadLogResponse;
+use morax_protos::request::AppendLogRequest;
+use morax_protos::request::AppendLogResponse;
+use morax_protos::request::CreateLogRequest;
+use morax_protos::request::CreateLogResponse;
+use morax_protos::request::Entry;
+use morax_protos::request::ReadLogRequest;
+use morax_protos::request::ReadLogResponse;
 use morax_storage::TopicStorage;
 use serde::Deserialize;
 use serde::Serialize;
@@ -82,12 +80,7 @@ impl WALBroker {
             .get_topics_by_name(name.clone())
             .await
             .change_context_lazy(make_error)?;
-        if !matches!(topic.properties.format, TopicFormat::WAL) {
-            bail!(BrokerError(format!(
-                "unsupported topic format: {:?}",
-                topic.properties.format
-            )));
-        }
+
         let topic_storage = TopicStorage::new(topic.properties.0.storage);
 
         let splits = self
@@ -141,12 +134,7 @@ impl WALBroker {
             .get_topics_by_name(name.clone())
             .await
             .change_context_lazy(make_error)?;
-        if !matches!(topic.properties.format, TopicFormat::WAL) {
-            bail!(BrokerError(format!(
-                "unsupported topic format: {:?}",
-                topic.properties.format
-            )));
-        }
+
         let topic_storage = TopicStorage::new(topic.properties.0.storage);
 
         let entry_cnt = request.entries.len();

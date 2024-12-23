@@ -15,13 +15,11 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::config::KafkaBrokerConfig;
 use crate::config::MetaServiceConfig;
 use crate::config::WALBrokerConfig;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerConfig {
     pub meta: MetaServiceConfig,
-    pub kafka_broker: KafkaBrokerConfig,
     pub wal_broker: WALBrokerConfig,
 }

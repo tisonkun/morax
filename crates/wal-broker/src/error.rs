@@ -14,8 +14,8 @@
 
 use std::borrow::Borrow;
 
-use morax_protos::rpc::ErrorCode;
-use morax_protos::rpc::ErrorResponse;
+use morax_protos::request::ErrorCode;
+use morax_protos::request::ErrorResponse;
 use poem::http::StatusCode;
 use poem::IntoResponse;
 

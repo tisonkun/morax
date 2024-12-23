@@ -17,5 +17,4 @@
 mod server;
 pub use server::*;
 
-mod kafka;
 mod wal;

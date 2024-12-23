@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use morax_protos::config::KafkaBrokerConfig;
 use morax_protos::config::LogConfig;
 use morax_protos::config::MetaServiceConfig;
 use morax_protos::config::ServerConfig;
 use morax_protos::config::StderrAppenderConfig;
 use morax_protos::config::TelemetryConfig;
 use morax_protos::config::WALBrokerConfig;
-use morax_protos::property::StorageProps;
 use morax_runtime::RuntimeOptions;
-use opendal::services::S3Config;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -36,19 +33,6 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             server: ServerConfig {
-                kafka_broker: KafkaBrokerConfig {
-                    listen_addr: "0.0.0.0:9092".to_string(),
-                    advertise_addr: None,
-                    fallback_storage: StorageProps::S3({
-                        let mut config = S3Config::default();
-                        config.bucket = "test-bucket".to_string();
-                        config.region = Some("us-east-1".to_string());
-                        config.endpoint = Some("http://127.0.0.1:9000".to_string());
-                        config.access_key_id = Some("minioadmin".to_string());
-                        config.secret_access_key = Some("minioadmin".to_string());
-                        config
-                    }),
-                },
                 wal_broker: WALBrokerConfig {
                     listen_addr: "0.0.0.0:8848".to_string(),
                     advertise_addr: None,

@@ -14,11 +14,9 @@
 
 [workspace]
 members = [
-  "api/kafka-api",
   "api/protos",
   "api/wal-client",
   "cmd/morax",
-  "crates/kafka-broker",
   "crates/meta",
   "crates/runtime",
   "crates/server",
@@ -26,8 +24,6 @@ members = [
   "crates/telemetry",
   "crates/version",
   "crates/wal-broker",
-  "tests/rdkafka",
-  "tests/rskafka",
   "tests/toolkit",
   "tests/wal",
   "xtask",

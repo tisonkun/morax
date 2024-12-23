@@ -22,8 +22,6 @@ use mea::waitgroup::WaitGroup;
 use morax_meta::PostgresMetaService;
 use morax_protos::config::ServerConfig;
 
-use crate::kafka::bootstrap_kafka_broker;
-use crate::kafka::KafkaBootstrapContext;
 use crate::wal::bootstrap_wal_broker;
 use crate::wal::WALBootstrapContext;
 
@@ -35,18 +33,12 @@ pub(crate) type ServerFuture<T> = morax_runtime::JoinHandle<Result<T, ServerErro
 
 #[derive(Debug)]
 pub struct ServerState {
-    kafka_broker_advertise_addr: SocketAddr,
-    kafka_broker_fut: ServerFuture<()>,
     wal_broker_advertise_addr: SocketAddr,
     wal_broker_fut: ServerFuture<()>,
     shutdown: Arc<Latch>,
 }
 
 impl ServerState {
-    pub fn kafka_broker_advertise_addr(&self) -> SocketAddr {
-        self.kafka_broker_advertise_addr
-    }
-
     pub fn wal_broker_advertise_addr(&self) -> SocketAddr {
         self.wal_broker_advertise_addr
     }
@@ -63,12 +55,7 @@ impl ServerState {
     pub async fn await_shutdown(self) {
         self.shutdown.wait().await;
 
-        match futures::future::try_join_all(vec![
-            flatten(self.kafka_broker_fut),
-            flatten(self.wal_broker_fut),
-        ])
-        .await
-        {
+        match futures::future::try_join_all(vec![flatten(self.wal_broker_fut)]).await {
             Ok(_) => log::info!("Morax server stopped."),
             Err(err) => log::error!(err:?; "Morax server failed."),
         }
@@ -86,16 +73,6 @@ pub async fn start(config: ServerConfig) -> Result<ServerState, ServerError> {
         .map(Arc::new)
         .change_context_lazy(make_error)?;
 
-    // initialize kafka broker
-    let (kafka_broker_advertise_addr, kafka_broker_fut) =
-        bootstrap_kafka_broker(KafkaBootstrapContext {
-            config: config.kafka_broker,
-            meta_service: meta_service.clone(),
-            wg: wg.clone(),
-            shutdown: shutdown.clone(),
-        })
-        .await?;
-
     // initialize wal broker
     let (wal_broker_advertise_addr, wal_broker_fut) = bootstrap_wal_broker(WALBootstrapContext {
         config: config.wal_broker,
@@ -108,8 +85,6 @@ pub async fn start(config: ServerConfig) -> Result<ServerState, ServerError> {
     // wait all servers to start and return
     wg.await;
     Ok(ServerState {
-        kafka_broker_advertise_addr,
-        kafka_broker_fut,
         wal_broker_advertise_addr,
         wal_broker_fut,
         shutdown,

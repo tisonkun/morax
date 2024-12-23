@@ -15,13 +15,13 @@
 use std::sync::Arc;
 
 use morax_meta::PostgresMetaService;
-use morax_protos::rpc::AppendLogRequest;
-use morax_protos::rpc::AppendLogResponse;
-use morax_protos::rpc::CreateLogRequest;
-use morax_protos::rpc::CreateLogResponse;
-use morax_protos::rpc::ErrorCode;
-use morax_protos::rpc::ReadLogRequest;
-use morax_protos::rpc::ReadLogResponse;
+use morax_protos::request::AppendLogRequest;
+use morax_protos::request::AppendLogResponse;
+use morax_protos::request::CreateLogRequest;
+use morax_protos::request::CreateLogResponse;
+use morax_protos::request::ErrorCode;
+use morax_protos::request::ReadLogRequest;
+use morax_protos::request::ReadLogResponse;
 use poem::middleware::AddData;
 use poem::middleware::Compression;
 use poem::web::Data;
