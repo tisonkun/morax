@@ -15,10 +15,10 @@
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
 use insta::assert_compact_debug_snapshot;
-use morax_protos::rpc::AppendLogRequest;
-use morax_protos::rpc::CreateLogRequest;
-use morax_protos::rpc::Entry;
-use morax_protos::rpc::ReadLogRequest;
+use morax_protos::request::AppendLogRequest;
+use morax_protos::request::CreateLogRequest;
+use morax_protos::request::Entry;
+use morax_protos::request::ReadLogRequest;
 use test_harness::test;
 use wal_tests::harness;
 use wal_tests::Testkit;

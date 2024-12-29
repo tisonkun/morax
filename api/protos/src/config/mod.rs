@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod kafka;
 mod meta;
 mod server;
 mod telemetry;
 mod wal;
 
-pub use kafka::*;
 pub use meta::*;
 pub use server::*;
 pub use telemetry::*;
