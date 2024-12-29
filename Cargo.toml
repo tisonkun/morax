@@ -43,22 +43,21 @@ backon = { version = "1.2", features = ["tokio-sleep"] }
 base64 = { version = "0.22" }
 better-panic = { version = "0.3" }
 build-data = { version = "0.2" }
-byteorder = { version = "1.5" }
 clap = { version = "4.5", features = ["derive"] }
 const_format = { version = "0.2" }
 ctrlc = { version = "3.4" }
 error-stack = { version = "0.5" }
 fastrace = { version = "0.7", features = ["enable"] }
-flexbuffers = { version = "2.0" }
+flexbuffers = { version = "24.12" }
 futures = { version = "0.3" }
-gix-discover = { version = "0.36" }
+gix-discover = { version = "0.37" }
 insta = { version = "1.40", features = ["json"] }
 local-ip-address = { version = "0.6" }
 log = { version = "0.4", features = ["kv_unstable_serde", "serde"] }
-logforth = { version = "0.18" }
-mea = { version = "0.0.6" }
+logforth = { version = "0.19" }
+mea = { version = "0.1" }
 mime = { version = "0.3" }
-opendal = { version = "0.50" }
+opendal = { version = "0.51" }
 pin-project = { version = "1.1" }
 poem = { version = "3.1", features = ["compression", "rustls"] }
 regex = { version = "1.11" }
@@ -66,7 +65,7 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
 scopeguard = { version = "1.2" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-shadow-rs = { version = "0.36" }
+shadow-rs = { version = "0.37" }
 sqlx = { version = "0.8", features = [
   "json",
   "postgres",
@@ -85,8 +84,6 @@ uuid = { version = "1.11", features = ["v4"] }
 which = { version = "7.0" }
 
 # workspace dependencies
-kafka-api = { version = "0.4.1", path = "api/kafka-api" }
-morax-kafka-broker = { version = "0.1.1", path = "crates/kafka-broker" }
 morax-meta = { version = "0.1.1", path = "crates/meta" }
 morax-protos = { version = "0.1.1", path = "api/protos" }
 morax-runtime = { version = "0.1.1", path = "crates/runtime" }
