@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod broker;
 mod meta;
 mod runtime;
 mod server;
 mod telemetry;
-mod broker;
 
+pub use broker::*;
 pub use meta::*;
 pub use runtime::*;
 pub use server::*;
 pub use telemetry::*;
-pub use broker::*;

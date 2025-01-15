@@ -32,8 +32,8 @@ better-panic = { workspace = true }
 fastimer = { workspace = true }
 futures = { workspace = true }
 log = { workspace = true }
-pin-project = { workspace = true }
 morax-protos = { workspace = true }
+pin-project = { workspace = true }
 tokio = { workspace = true }
 
 [lints]

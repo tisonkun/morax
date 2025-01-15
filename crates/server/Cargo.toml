@@ -30,10 +30,10 @@ futures = { workspace = true }
 local-ip-address = { workspace = true }
 log = { workspace = true }
 mea = { workspace = true }
+morax-broker = { workspace = true }
 morax-meta = { workspace = true }
 morax-protos = { workspace = true }
 morax-runtime = { workspace = true }
-morax-broker = { workspace = true }
 poem = { workspace = true }
 thiserror = { workspace = true }
 

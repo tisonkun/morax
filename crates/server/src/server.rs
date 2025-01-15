@@ -55,7 +55,7 @@ impl ServerState {
     pub async fn await_shutdown(self) {
         self.shutdown.wait().await;
 
-        match futures::future::try_join_all(vec![flatten(self.broker_fut)]).await {
+        match futures::future::try_join_all(vec![self.broker_fut]).await {
             Ok(_) => log::info!("Morax server stopped."),
             Err(err) => log::error!(err:?; "Morax server failed."),
         }
@@ -119,9 +119,4 @@ pub(crate) fn resolve_advertise_addr(
             Ok(advertise_addr)
         }
     }
-}
-
-async fn flatten<T>(fut: ServerFuture<T>) -> Result<T, ServerError> {
-    let make_error = || ServerError("failed to join server future".to_string());
-    fut.await.change_context_lazy(make_error)?
 }

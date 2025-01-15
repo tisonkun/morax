@@ -29,10 +29,10 @@ release = false
 base64 = { workspace = true }
 insta = { workspace = true }
 log = { workspace = true }
+morax-client = { workspace = true }
 morax-protos = { workspace = true }
 morax-runtime = { workspace = true, features = ["test"] }
 morax-telemetry = { workspace = true }
-morax-client = { workspace = true }
 reqwest = { workspace = true }
 test-harness = { workspace = true }
 tests-toolkit = { workspace = true }

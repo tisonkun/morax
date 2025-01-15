@@ -73,21 +73,25 @@ impl PostgresMetaService {
                 .await
                 .change_context_lazy(make_error)?;
 
-        let start_offset: i64 = sqlx::query_scalar("SELECT last_offset FROM topic_offsets WHERE topic_id = $1 FOR UPDATE")
-            .bind(topic_id)
-            .fetch_one(&mut *txn)
-            .await
-            .change_context_lazy(make_error)?;
+        let start_offset: i64 = sqlx::query_scalar(
+            "SELECT last_offset FROM topic_offsets WHERE topic_id = $1 FOR UPDATE",
+        )
+        .bind(topic_id)
+        .fetch_one(&mut *txn)
+        .await
+        .change_context_lazy(make_error)?;
         let last_offset = start_offset + request.record_len as i64;
-        let end_offset = sqlx::query_scalar("UPDATE topic_offsets SET last_offset = $1 WHERE topic_id = $2 RETURNING last_offset")
-            .bind(last_offset)
-            .bind(topic_id)
-            .fetch_one(&mut *txn)
-            .await
-            .change_context_lazy(make_error)?;
+        let end_offset = sqlx::query_scalar(
+            "UPDATE topic_offsets SET last_offset = $1 WHERE topic_id = $2 RETURNING last_offset",
+        )
+        .bind(last_offset)
+        .bind(topic_id)
+        .fetch_one(&mut *txn)
+        .await
+        .change_context_lazy(make_error)?;
         debug_assert_eq!(last_offset, end_offset, "last offset mismatch");
 
-        sqlx::query("INSERT INTO topic_splits (topic_id, topic_name, start_offset, end_offset, split_id) VALUES ($1, $2, $3, $4, $5, $6)")
+        sqlx::query("INSERT INTO topic_splits (topic_id, topic_name, start_offset, end_offset, split_id) VALUES ($1, $2, $3, $4, $5)")
             .bind(topic_id)
             .bind(topic_name)
             .bind(start_offset)

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use morax_protos::config::BrokerConfig;
 use morax_protos::config::LogConfig;
 use morax_protos::config::MetaServiceConfig;
 use morax_protos::config::RuntimeOptions;
 use morax_protos::config::ServerConfig;
 use morax_protos::config::StderrAppenderConfig;
 use morax_protos::config::TelemetryConfig;
-use morax_protos::config::BrokerConfig;
 use serde::Deserialize;
 use serde::Serialize;
 

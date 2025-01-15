@@ -17,9 +17,9 @@ use std::sync::OnceLock;
 
 use morax_protos::config::RuntimeOptions;
 
+use crate::num_cpus;
 use crate::Builder;
 use crate::Runtime;
-use crate::num_cpus;
 
 pub fn make_runtime(runtime_name: &str, thread_name: &str, worker_threads: usize) -> Runtime {
     log::info!(
