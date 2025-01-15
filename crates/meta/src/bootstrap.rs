@@ -28,13 +28,12 @@ pub async fn bootstrap(pool: PgPool) -> error_stack::Result<(), sqlx::Error> {
     txn.execute("CREATE SEQUENCE IF NOT EXISTS producer_ids CYCLE")
         .await?;
 
-    // topics and partitions
+    // topics
     txn.execute(
         r#"
 CREATE TABLE IF NOT EXISTS topics (
     id UUID NOT NULL,
     name TEXT NOT NULL,
-    partitions INT NOT NULL,
     properties JSONB NOT NULL,
     UNIQUE (id), UNIQUE (name)
 );
@@ -44,40 +43,26 @@ CREATE TABLE IF NOT EXISTS topics (
 
     txn.execute(
         r#"
-CREATE TABLE IF NOT EXISTS topic_partitions (
+CREATE TABLE IF NOT EXISTS topic_offsets (
     topic_id UUID NOT NULL,
-    partition_id INT NOT NULL,
     last_offset BIGINT NOT NULL,
-    UNIQUE (topic_id, partition_id)
+    UNIQUE (topic_id)
 );
 "#,
     )
     .await?;
 
-    // topic partition splits
-    // [start_offset, end_offset)
+    // topic splits:
+    // * start_offset is inclusive
+    // * end_offset is exclusive
     txn.execute(
         r#"
-CREATE TABLE IF NOT EXISTS topic_partition_splits (
+CREATE TABLE IF NOT EXISTS topic_splits (
     topic_id UUID NOT NULL,
     topic_name TEXT NOT NULL,
-    partition_id INT NOT NULL,
     start_offset BIGINT NOT NULL,
     end_offset BIGINT NOT NULL,
     split_id TEXT NOT NULL
-);
-"#,
-    )
-    .await?;
-
-    // kafka consumer groups
-    // (group_id, JSON-encoded group_meta)
-    txn.execute(
-        r#"
-CREATE TABLE IF NOT EXISTS kafka_consumer_groups (
-    group_id TEXT NOT NULL,
-    group_meta JSONB NOT NULL,
-    UNIQUE (group_id)
 );
 "#,
     )

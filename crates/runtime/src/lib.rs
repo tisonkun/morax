@@ -12,8 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+mod buffer_by_unordered;
+
 mod global;
-pub use crate::global::*;
+pub use global::*;
 
 mod runtime;
-pub use crate::runtime::*;
+pub use runtime::*;
+
+mod stream;
+pub use stream::*;
+
+/// Returns the number of logical CPUs on the current machine.
+// This method fills the gap that `std::thread::available_parallelism()`
+// may return `Err` on some platforms, in which case we default to `1`.
+#[track_caller]
+pub fn num_cpus() -> std::num::NonZeroUsize {
+    match std::thread::available_parallelism() {
+        Ok(parallelism) => parallelism,
+        Err(err) => {
+            log::warn!(err: err; "failed to fetch the available parallelism; fallback to 1");
+            std::num::NonZeroUsize::new(1).unwrap()
+        }
+    }
+}

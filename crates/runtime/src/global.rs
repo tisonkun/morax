@@ -12,16 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::num::NonZeroUsize;
 use std::sync::OnceLock;
 
-use serde::Deserialize;
-use serde::Serialize;
+use morax_protos::config::RuntimeOptions;
 
+use crate::num_cpus;
 use crate::Builder;
 use crate::Runtime;
 
 pub fn make_runtime(runtime_name: &str, thread_name: &str, worker_threads: usize) -> Runtime {
-    log::info!("creating runtime with runtime_name: {runtime_name}, thread_name: {thread_name}, work_threads: {worker_threads}.");
+    log::info!(
+        "creating runtime with runtime_name: {runtime_name}, thread_name: {thread_name}, work_threads: {worker_threads}."
+    );
     Builder::default()
         .runtime_name(runtime_name)
         .thread_name(thread_name)
@@ -30,112 +33,104 @@ pub fn make_runtime(runtime_name: &str, thread_name: &str, worker_threads: usize
         .expect("failed to create runtime")
 }
 
+pub fn telemetry_runtime() -> &'static Runtime {
+    static RT: OnceLock<Runtime> = OnceLock::new();
+    RT.get_or_init(|| make_runtime("telemetry_runtime", "telemetry_thread", 1))
+}
+
 #[cfg(any(test, feature = "test"))]
 pub fn test_runtime() -> &'static Runtime {
     static RT: OnceLock<Runtime> = OnceLock::new();
-    RT.get_or_init(|| make_runtime("test_runtime", "test_runtime", 4))
+    RT.get_or_init(|| make_runtime("test_runtime", "test_thread", 4))
 }
 
 #[derive(Debug)]
 struct GlobalRuntimes {
-    api_runtime: Runtime,
+    server_runtime: Runtime,
     exec_runtime: Runtime,
-    meta_runtime: Runtime,
-    data_runtime: Runtime,
-    bg_runtime: Runtime,
+    io_runtime: Runtime,
 }
 
 static GLOBAL_RUNTIMES: OnceLock<GlobalRuntimes> = OnceLock::new();
-
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-pub struct RuntimeOptions {
-    #[serde(default = "default_threads")]
-    pub api_runtime_threads: usize,
-    #[serde(default = "default_threads")]
-    pub exec_runtime_threads: usize,
-    #[serde(default = "default_threads")]
-    pub meta_runtime_threads: usize,
-    #[serde(default = "default_threads")]
-    pub data_runtime_threads: usize,
-    #[serde(default = "default_threads")]
-    pub bg_runtime_threads: usize,
-}
-
-const fn default_threads() -> usize {
-    1
-}
-
-impl Default for RuntimeOptions {
-    fn default() -> Self {
-        Self {
-            api_runtime_threads: 1,
-            exec_runtime_threads: 1,
-            meta_runtime_threads: 1,
-            data_runtime_threads: 1,
-            bg_runtime_threads: 1,
-        }
-    }
-}
 
 pub fn init(opts: &RuntimeOptions) {
     GLOBAL_RUNTIMES.get_or_init(|| do_initialize_runtimes(opts));
 }
 
-fn setup_panic_hook() {
-    std::panic::set_hook(Box::new(move |info| {
-        let backtrace = std::backtrace::Backtrace::capture();
-        log::error!("panic occurred: {info}\nbacktrace:\n{backtrace}");
-        better_panic::Settings::auto().create_panic_handler()(info);
-        shutdown();
-    }));
-}
-
 fn do_initialize_runtimes(opts: &RuntimeOptions) -> GlobalRuntimes {
     log::info!("initializing global runtimes: {opts:?}");
 
-    setup_panic_hook();
+    set_panic_hook();
 
-    let api_runtime = make_runtime("api_runtime", "api_thread", opts.api_runtime_threads);
-    let exec_runtime = make_runtime("exec_runtime", "exec_thread", opts.exec_runtime_threads);
-    let meta_runtime = make_runtime("meta_runtime", "meta_thread", opts.meta_runtime_threads);
-    let data_runtime = make_runtime("data_runtime", "data_thread", opts.data_runtime_threads);
-    let bg_runtime = make_runtime("bg_runtime", "bg_thread", opts.bg_runtime_threads);
+    let RuntimeOptions {
+        server_runtime_threads,
+        exec_runtime_threads,
+        io_runtime_threads,
+    } = opts;
+
+    let server_runtime = make_runtime(
+        "server_runtime",
+        "server_thread",
+        server_runtime_threads
+            .unwrap_or_else(default_server_threads)
+            .get(),
+    );
+    let exec_runtime = make_runtime(
+        "exec_runtime",
+        "exec_thread",
+        exec_runtime_threads
+            .unwrap_or_else(default_exec_threads)
+            .get(),
+    );
+    let io_runtime = make_runtime(
+        "io_runtime",
+        "io_thread",
+        io_runtime_threads.unwrap_or_else(default_io_threads).get(),
+    );
+
     GlobalRuntimes {
-        api_runtime,
+        server_runtime,
         exec_runtime,
-        meta_runtime,
-        data_runtime,
-        bg_runtime,
+        io_runtime,
     }
+}
+
+fn default_server_threads() -> NonZeroUsize {
+    NonZeroUsize::new(2).unwrap()
+}
+
+fn default_exec_threads() -> NonZeroUsize {
+    num_cpus()
+}
+
+fn default_io_threads() -> NonZeroUsize {
+    num_cpus()
+}
+
+fn set_panic_hook() {
+    std::panic::set_hook(Box::new(move |info| {
+        let backtrace = std::backtrace::Backtrace::force_capture();
+        log::error!("panic occurred: {info}\nbacktrace:\n{backtrace}");
+        better_panic::Settings::auto().create_panic_handler()(info);
+        log::info!("shutting down runtimes");
+        std::process::exit(1);
+    }));
 }
 
 fn fetch_runtimes_or_default() -> &'static GlobalRuntimes {
     GLOBAL_RUNTIMES.get_or_init(|| do_initialize_runtimes(&RuntimeOptions::default()))
 }
 
-pub fn api_runtime() -> &'static Runtime {
-    &fetch_runtimes_or_default().api_runtime
+pub fn server_runtime() -> &'static Runtime {
+    &fetch_runtimes_or_default().server_runtime
 }
 
 pub fn exec_runtime() -> &'static Runtime {
     &fetch_runtimes_or_default().exec_runtime
 }
 
-pub fn meta_runtime() -> &'static Runtime {
-    &fetch_runtimes_or_default().meta_runtime
-}
-
-pub fn data_runtime() -> &'static Runtime {
-    &fetch_runtimes_or_default().data_runtime
-}
-
-pub fn bg_runtime() -> &'static Runtime {
-    &fetch_runtimes_or_default().bg_runtime
-}
-
-pub fn shutdown() {
-    log::info!("The Global Runtimes are shutting down.");
-    std::process::exit(1);
+pub fn io_runtime() -> &'static Runtime {
+    &fetch_runtimes_or_default().io_runtime
 }
 
 #[cfg(test)]
@@ -144,35 +139,26 @@ mod tests {
 
     #[test]
     fn test_spawn_block_on() {
-        let handle = api_runtime().spawn(async { 1 + 1 });
-        assert_eq!(2, api_runtime().block_on(handle).unwrap());
+        let handle = server_runtime().spawn(async { 1 + 1 });
+        assert_eq!(2, server_runtime().block_on(handle));
 
         let handle = exec_runtime().spawn(async { 2 + 2 });
-        assert_eq!(4, exec_runtime().block_on(handle).unwrap());
+        assert_eq!(4, exec_runtime().block_on(handle));
 
-        let handle = meta_runtime().spawn(async { 3 + 3 });
-        assert_eq!(6, meta_runtime().block_on(handle).unwrap());
-
-        let handle = data_runtime().spawn(async { 4 + 4 });
-        assert_eq!(8, data_runtime().block_on(handle).unwrap());
+        let handle = io_runtime().spawn(async { 4 + 4 });
+        assert_eq!(8, io_runtime().block_on(handle));
     }
 
     #[test]
     fn test_spawn_from_blocking() {
-        let runtimes = [
-            api_runtime(),
-            exec_runtime(),
-            meta_runtime(),
-            data_runtime(),
-        ];
+        let runtimes = [server_runtime(), exec_runtime(), io_runtime()];
 
         for runtime in runtimes {
             let out = runtime.block_on(async move {
                 let inner = runtime
                     .spawn_blocking(|| runtime.spawn(async move { "hello" }))
-                    .await
-                    .unwrap();
-                inner.await.unwrap()
+                    .await;
+                inner.await
             });
             assert_eq!(out, "hello")
         }

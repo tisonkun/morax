@@ -25,7 +25,6 @@ use sqlx::Postgres;
 use crate::bootstrap::bootstrap;
 use crate::MetaError;
 
-mod kafka_group;
 mod pubsub;
 mod topic;
 

@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![feature(ip)]
-
-mod server;
-pub use server::*;
-
 mod broker;
+mod error;
+mod http;
+
+pub use http::make_api_router;
+
+#[derive(Debug, thiserror::Error)]
+#[error("{0}")]
+pub struct BrokerError(String);

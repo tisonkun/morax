@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use morax_protos::config::BrokerConfig;
 use morax_protos::config::LogConfig;
 use morax_protos::config::MetaServiceConfig;
+use morax_protos::config::RuntimeOptions;
 use morax_protos::config::ServerConfig;
 use morax_protos::config::StderrAppenderConfig;
 use morax_protos::config::TelemetryConfig;
-use morax_protos::config::WALBrokerConfig;
-use morax_runtime::RuntimeOptions;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -33,7 +33,7 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             server: ServerConfig {
-                wal_broker: WALBrokerConfig {
+                broker: BrokerConfig {
                     listen_addr: "0.0.0.0:8848".to_string(),
                     advertise_addr: None,
                 },

@@ -22,7 +22,7 @@ use morax_protos::property::TopicProps;
 use tests_toolkit::make_test_name;
 
 pub struct Testkit {
-    pub client: morax_wal_client::HTTPClient,
+    pub client: morax_client::HTTPClient,
     pub topic_props: TopicProps,
 }
 
@@ -45,9 +45,9 @@ where
     };
 
     morax_runtime::test_runtime().block_on(async move {
-        let server_addr = format!("http://{}", state.server_state.wal_broker_advertise_addr());
+        let server_addr = format!("http://{}", state.server_state.broker_advertise_addr());
         let builder = reqwest::ClientBuilder::new();
-        let client = morax_wal_client::HTTPClient::new(server_addr, builder).unwrap();
+        let client = morax_client::HTTPClient::new(server_addr, builder).unwrap();
 
         let exit_code = test(Testkit {
             client,

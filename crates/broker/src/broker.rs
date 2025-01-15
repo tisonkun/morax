@@ -42,13 +42,13 @@ struct EntryData {
 }
 
 #[derive(Debug, Clone)]
-pub struct WALBroker {
+pub struct Broker {
     meta: Arc<PostgresMetaService>,
 }
 
-impl WALBroker {
+impl Broker {
     pub fn new(meta: Arc<PostgresMetaService>) -> Self {
-        WALBroker { meta }
+        Broker { meta }
     }
 
     pub async fn create(
@@ -62,7 +62,6 @@ impl WALBroker {
             .meta
             .create_topic(CreateTopicRequest {
                 name: name.clone(),
-                partitions: 1,
                 properties: request.properties,
             })
             .await
@@ -88,7 +87,6 @@ impl WALBroker {
             .fetch_record_batches(FetchRecordBatchesRequest {
                 topic_id: Default::default(),
                 topic_name: name.clone(),
-                partition_id: 0,
                 offset: request.offset,
             })
             .await
@@ -97,9 +95,8 @@ impl WALBroker {
         let mut entries = vec![];
         for split in splits {
             debug_assert_eq!(&split.topic_name, &topic.name);
-            debug_assert_eq!(split.partition_id, 0);
             let data = topic_storage
-                .read_at(&split.topic_name, split.partition_id, &split.split_id)
+                .read_at(&split.topic_name, &split.split_id)
                 .await
                 .change_context_lazy(make_error)?;
             let deserializer =
@@ -158,7 +155,7 @@ impl WALBroker {
             serializer.take_buffer()
         };
         let split_id = topic_storage
-            .write_to(&topic.name, 0, entry_data)
+            .write_to(&topic.name, entry_data)
             .await
             .change_context_lazy(make_error)?;
 
@@ -166,7 +163,6 @@ impl WALBroker {
             .meta
             .commit_record_batches(CommitRecordBatchesRequest {
                 topic_name: name.clone(),
-                partition_id: 0,
                 record_len: entry_cnt as i32,
                 split_id,
             })

@@ -15,17 +15,17 @@
 [workspace]
 members = [
   "api/protos",
-  "api/wal-client",
+  "api/client",
   "cmd/morax",
+  "crates/broker",
   "crates/meta",
   "crates/runtime",
   "crates/server",
   "crates/storage",
   "crates/telemetry",
   "crates/version",
-  "crates/wal-broker",
+  "tests/behavior",
   "tests/toolkit",
-  "tests/wal",
   "xtask",
 ]
 
@@ -47,6 +47,7 @@ clap = { version = "4.5", features = ["derive"] }
 const_format = { version = "0.2" }
 ctrlc = { version = "3.4" }
 error-stack = { version = "0.5" }
+fastimer = { version = "0.4", features = ["tokio-time", "logging"] }
 fastrace = { version = "0.7", features = ["enable"] }
 flexbuffers = { version = "24.12" }
 futures = { version = "0.3" }
@@ -54,7 +55,7 @@ gix-discover = { version = "0.37" }
 insta = { version = "1.40", features = ["json"] }
 local-ip-address = { version = "0.6" }
 log = { version = "0.4", features = ["kv_unstable_serde", "serde"] }
-logforth = { version = "0.19" }
+logforth = { version = "0.20" }
 mea = { version = "0.1" }
 mime = { version = "0.3" }
 opendal = { version = "0.51" }
@@ -77,13 +78,14 @@ test-harness = { version = "0.3" }
 testcontainers = { version = "0.23", features = ["blocking"] }
 thiserror = { version = "2.0" }
 tokio = { version = "1.41", features = ["full"] }
-tokio-util = { version = "0.7", features = ["compat"] }
 toml = { version = "0.8" }
 url = { version = "2.5" }
 uuid = { version = "1.11", features = ["v4"] }
 which = { version = "7.0" }
 
 # workspace dependencies
+morax-broker = { version = "0.1.1", path = "crates/broker" }
+morax-client = { version = "0.1.1", path = "api/client" }
 morax-meta = { version = "0.1.1", path = "crates/meta" }
 morax-protos = { version = "0.1.1", path = "api/protos" }
 morax-runtime = { version = "0.1.1", path = "crates/runtime" }
@@ -91,8 +93,6 @@ morax-server = { version = "0.1.1", path = "crates/server" }
 morax-storage = { version = "0.1.1", path = "crates/storage" }
 morax-telemetry = { version = "0.1.1", path = "crates/telemetry" }
 morax-version = { version = "0.1.1", path = "crates/version" }
-morax-wal-broker = { version = "0.1.1", path = "crates/wal-broker" }
-morax-wal-client = { version = "0.1.1", path = "api/wal-client" }
 tests-toolkit = { version = "0.1.1", path = "tests/toolkit" }
 
 [workspace.lints.rust]

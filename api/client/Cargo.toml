@@ -13,10 +13,10 @@
 # limitations under the License.
 
 [package]
-name = "morax-wal-broker"
+name = "morax-client"
 publish = true
 
-description = "The WAL Service broker layer for Morax"
+description = "A client for Morax server"
 
 edition.workspace = true
 license.workspace = true
@@ -25,16 +25,10 @@ repository.workspace = true
 version.workspace = true
 
 [dependencies]
-base64 = { workspace = true }
+backon = { workspace = true }
 error-stack = { workspace = true }
-flexbuffers = { workspace = true }
-log = { workspace = true }
-mime = { workspace = true }
-morax-meta = { workspace = true }
 morax-protos = { workspace = true }
-morax-runtime = { workspace = true }
-morax-storage = { workspace = true }
-poem = { workspace = true }
+reqwest = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

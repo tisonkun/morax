@@ -31,14 +31,9 @@ impl TopicStorage {
         Self { storage }
     }
 
-    pub async fn read_at(
-        &self,
-        topic_name: &str,
-        partition_id: i32,
-        split_id: &str,
-    ) -> Result<Vec<u8>, StorageError> {
+    pub async fn read_at(&self, topic_name: &str, split_id: &str) -> Result<Vec<u8>, StorageError> {
         let op = self.op()?;
-        let split_url = format!("{topic_name}/{partition_id}/{split_id}");
+        let split_url = format!("{topic_name}/{split_id}");
         let records = op.read(&split_url).await.map_err(StorageError::OpenDAL)?;
         Ok(records.to_vec())
     }
@@ -46,13 +41,12 @@ impl TopicStorage {
     pub async fn write_to(
         &self,
         topic_name: &str,
-        partition_id: i32,
         records: Vec<u8>,
     ) -> Result<String, StorageError> {
         let op = self.op()?;
         // TODO(tisonkun): whether use a sequential number rather than a UUID
         let split_id = uuid::Uuid::new_v4();
-        let split_url = format!("{topic_name}/{partition_id}/{split_id}");
+        let split_url = format!("{topic_name}/{split_id}");
         op.write(&split_url, records)
             .await
             .map_err(StorageError::OpenDAL)?;
