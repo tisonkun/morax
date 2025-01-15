@@ -22,8 +22,8 @@ use mea::waitgroup::WaitGroup;
 use morax_meta::PostgresMetaService;
 use morax_protos::config::ServerConfig;
 
-use crate::wal::bootstrap_wal_broker;
-use crate::wal::WALBootstrapContext;
+use crate::broker::bootstrap_broker;
+use crate::broker::BrokerBootstrapContext;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]
@@ -33,14 +33,14 @@ pub(crate) type ServerFuture<T> = morax_runtime::JoinHandle<Result<T, ServerErro
 
 #[derive(Debug)]
 pub struct ServerState {
-    wal_broker_advertise_addr: SocketAddr,
-    wal_broker_fut: ServerFuture<()>,
+    broker_advertise_addr: SocketAddr,
+    broker_fut: ServerFuture<()>,
     shutdown: Arc<Latch>,
 }
 
 impl ServerState {
-    pub fn wal_broker_advertise_addr(&self) -> SocketAddr {
-        self.wal_broker_advertise_addr
+    pub fn broker_advertise_addr(&self) -> SocketAddr {
+        self.broker_advertise_addr
     }
 
     pub fn shutdown_handle(&self) -> impl Fn() {
@@ -55,7 +55,7 @@ impl ServerState {
     pub async fn await_shutdown(self) {
         self.shutdown.wait().await;
 
-        match futures::future::try_join_all(vec![flatten(self.wal_broker_fut)]).await {
+        match futures::future::try_join_all(vec![flatten(self.broker_fut)]).await {
             Ok(_) => log::info!("Morax server stopped."),
             Err(err) => log::error!(err:?; "Morax server failed."),
         }
@@ -73,9 +73,9 @@ pub async fn start(config: ServerConfig) -> Result<ServerState, ServerError> {
         .map(Arc::new)
         .change_context_lazy(make_error)?;
 
-    // initialize wal broker
-    let (wal_broker_advertise_addr, wal_broker_fut) = bootstrap_wal_broker(WALBootstrapContext {
-        config: config.wal_broker,
+    // initialize broker
+    let (broker_advertise_addr, broker_fut) = bootstrap_broker(BrokerBootstrapContext {
+        config: config.broker,
         meta_service: meta_service.clone(),
         wg: wg.clone(),
         shutdown: shutdown.clone(),
@@ -85,8 +85,8 @@ pub async fn start(config: ServerConfig) -> Result<ServerState, ServerError> {
     // wait all servers to start and return
     wg.await;
     Ok(ServerState {
-        wal_broker_advertise_addr,
-        wal_broker_fut,
+        broker_advertise_addr,
+        broker_fut,
         shutdown,
     })
 }

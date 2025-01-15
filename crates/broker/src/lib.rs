@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use serde::Deserialize;
-use serde::Serialize;
+mod error;
+mod http;
+mod broker;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WALBrokerConfig {
-    pub listen_addr: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub advertise_addr: Option<String>,
-}
+pub use http::make_api_router;
+
+#[derive(Debug, thiserror::Error)]
+#[error("{0}")]
+pub struct BrokerError(String);

@@ -18,7 +18,7 @@ Morax is aimed at providing message queue and data streaming functionality based
 
 ## Usage
 
-Currently, Morax supports basic PubSub APIs for Apache Kafka and WAL Service. You can try it out with the following steps.
+Currently, Morax supports basic PubSub APIs. You can try it out with the following steps.
 
 1. Start the environment that provides a Postgres instance and a MinIO instance:
 
@@ -38,22 +38,12 @@ Currently, Morax supports basic PubSub APIs for Apache Kafka and WAL Service. Yo
     ./target/debug/morax start --config-file ./dev/config.toml
     ```
 
-### Try out the Apache Kafka broker
 
-Now, a Kafka broker is running at `localhost:9092`. You can use your favorite Kafka client to interact with it.
-
-You can also get an impression of the interaction by reading the test cases in:
-
-* [rdkafka-tests](tests/rdkafka/tests)
-* [rskafka-tests](tests/rskafka/tests)
-
-### Try out the WAL Service broker
-
-Also, a WAL broker is running at `localhost:8848`. You can talk to it with the [`morax-wal-client`](api/wal-client). The wire protocol is HTTP so that all the HTTP ecosystem is ready for use.
+The broker is now running at `localhost:8848`. You can talk to it with the [`morax-client`](api/client). The wire protocol is HTTP so that all the HTTP ecosystem is ready for use.
 
 You can also get an impression of the interaction by reading the test cases in:
 
-* [wal-tests](tests/wal/tests)
+* [behavior-tests](tests/behavior/tests)
 
 ## Design
 

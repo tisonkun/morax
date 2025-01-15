@@ -14,9 +14,9 @@
 
 use std::net::SocketAddr;
 
+use morax_protos::config::BrokerConfig;
 use morax_protos::config::MetaServiceConfig;
 use morax_protos::config::ServerConfig;
-use morax_protos::config::WALBrokerConfig;
 use morax_protos::property::StorageProps;
 use morax_server::ServerState;
 use opendal::Operator;
@@ -70,13 +70,13 @@ pub fn start_test_server(test_name: &str) -> Option<TestServerState> {
         _drop_guards,
     } = make_test_env_state(test_name)?;
     let host = local_ip_address::local_ip().unwrap();
-    let wal_broker = WALBrokerConfig {
+    let broker = BrokerConfig {
         listen_addr: SocketAddr::new(host, 0).to_string(),
         advertise_addr: None,
     };
     let server_state = morax_runtime::test_runtime()
         .block_on(morax_server::start(ServerConfig {
-            wal_broker,
+            broker,
             meta: env_props.meta.clone(),
         }))
         .unwrap();

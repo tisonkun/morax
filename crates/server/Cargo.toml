@@ -33,7 +33,7 @@ mea = { workspace = true }
 morax-meta = { workspace = true }
 morax-protos = { workspace = true }
 morax-runtime = { workspace = true }
-morax-wal-broker = { workspace = true }
+morax-broker = { workspace = true }
 poem = { workspace = true }
 thiserror = { workspace = true }
 

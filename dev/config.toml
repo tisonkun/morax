@@ -15,7 +15,7 @@
 [server.meta]
 service_url = "postgres://morax:my_secret_password@127.0.0.1:5432/morax_meta"
 
-[server.wal_broker]
+[server.broker]
 listen_addr = "0.0.0.0:8848"
 
 [telemetry.log.stderr]

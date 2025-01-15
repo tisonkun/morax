@@ -42,13 +42,13 @@ struct EntryData {
 }
 
 #[derive(Debug, Clone)]
-pub struct WALBroker {
+pub struct Broker {
     meta: Arc<PostgresMetaService>,
 }
 
-impl WALBroker {
+impl Broker {
     pub fn new(meta: Arc<PostgresMetaService>) -> Self {
-        WALBroker { meta }
+        Broker { meta }
     }
 
     pub async fn create(

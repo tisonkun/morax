@@ -14,14 +14,14 @@
 
 use base64::prelude::BASE64_STANDARD;
 use base64::Engine;
+use behavior_tests::harness;
+use behavior_tests::Testkit;
 use insta::assert_compact_debug_snapshot;
 use morax_protos::request::AppendLogRequest;
 use morax_protos::request::CreateLogRequest;
 use morax_protos::request::Entry;
 use morax_protos::request::ReadLogRequest;
 use test_harness::test;
-use wal_tests::harness;
-use wal_tests::Testkit;
 
 fn make_entry(payload: &str) -> Entry {
     Entry {

@@ -16,10 +16,10 @@ mod meta;
 mod runtime;
 mod server;
 mod telemetry;
-mod wal;
+mod broker;
 
 pub use meta::*;
 pub use runtime::*;
 pub use server::*;
 pub use telemetry::*;
-pub use wal::*;
+pub use broker::*;

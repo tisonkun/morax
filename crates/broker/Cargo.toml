@@ -13,10 +13,10 @@
 # limitations under the License.
 
 [package]
-name = "morax-wal-broker"
+name = "morax-broker"
 publish = true
 
-description = "The WAL Service broker layer for Morax"
+description = "The broker layer for Morax"
 
 edition.workspace = true
 license.workspace = true

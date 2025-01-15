@@ -13,10 +13,8 @@
 # limitations under the License.
 
 [package]
-name = "morax-wal-client"
-publish = true
-
-description = "A client for Morax WAL Service broker"
+name = "behavior-tests"
+publish = false
 
 edition.workspace = true
 license.workspace = true
@@ -24,14 +22,20 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.release]
+release = false
+
 [dependencies]
-backon = { workspace = true }
-error-stack = { workspace = true }
+base64 = { workspace = true }
+insta = { workspace = true }
+log = { workspace = true }
 morax-protos = { workspace = true }
+morax-runtime = { workspace = true, features = ["test"] }
+morax-telemetry = { workspace = true }
+morax-client = { workspace = true }
 reqwest = { workspace = true }
-serde = { workspace = true }
-serde_json = { workspace = true }
-thiserror = { workspace = true }
+test-harness = { workspace = true }
+tests-toolkit = { workspace = true }
 
 [lints]
 workspace = true

@@ -18,7 +18,7 @@ use morax_protos::config::RuntimeOptions;
 use morax_protos::config::ServerConfig;
 use morax_protos::config::StderrAppenderConfig;
 use morax_protos::config::TelemetryConfig;
-use morax_protos::config::WALBrokerConfig;
+use morax_protos::config::BrokerConfig;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -33,7 +33,7 @@ impl Default for Config {
     fn default() -> Self {
         Config {
             server: ServerConfig {
-                wal_broker: WALBrokerConfig {
+                broker: BrokerConfig {
                     listen_addr: "0.0.0.0:8848".to_string(),
                     advertise_addr: None,
                 },

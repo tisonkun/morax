@@ -29,8 +29,8 @@ use poem::web::Json;
 use poem::EndpointExt;
 use poem::Route;
 
+use crate::broker::Broker;
 use crate::error::ErrorWithCode;
-use crate::wal::WALBroker;
 
 #[poem::handler]
 pub async fn health_check() -> poem::Result<String> {
@@ -39,10 +39,10 @@ pub async fn health_check() -> poem::Result<String> {
 
 #[poem::handler]
 pub async fn create(
-    Data(wal): Data<&WALBroker>,
+    Data(broker): Data<&Broker>,
     Json(request): Json<CreateLogRequest>,
 ) -> poem::Result<Json<CreateLogResponse>> {
-    let response = wal
+    let response = broker
         .create(request)
         .await
         .inspect_err(|err| log::error!(err:?; "failed to create log"))
@@ -52,10 +52,10 @@ pub async fn create(
 
 #[poem::handler]
 pub async fn read(
-    Data(wal): Data<&WALBroker>,
+    Data(broker): Data<&Broker>,
     Json(request): Json<ReadLogRequest>,
 ) -> poem::Result<Json<ReadLogResponse>> {
-    let response = wal
+    let response = broker
         .read_at(request)
         .await
         .inspect_err(|err| log::error!(err:?; "failed to read log"))
@@ -65,10 +65,10 @@ pub async fn read(
 
 #[poem::handler]
 pub async fn append(
-    Data(wal): Data<&WALBroker>,
+    Data(broker): Data<&Broker>,
     Json(request): Json<AppendLogRequest>,
 ) -> poem::Result<Json<AppendLogResponse>> {
-    let response = wal
+    let response = broker
         .append(request)
         .await
         .inspect_err(|err| log::error!(err:?; "failed to append log"))
@@ -77,7 +77,7 @@ pub async fn append(
 }
 
 pub fn make_api_router(meta: Arc<PostgresMetaService>) -> Route {
-    let wal = WALBroker::new(meta);
+    let broker = Broker::new(meta);
 
     let v1_route = Route::new()
         .at("/health", poem::get(health_check))
@@ -85,7 +85,7 @@ pub fn make_api_router(meta: Arc<PostgresMetaService>) -> Route {
         .at("/read", poem::post(read))
         .at("/append", poem::post(append))
         .with(Compression::new())
-        .with(AddData::new(wal));
+        .with(AddData::new(broker));
 
     Route::new().nest("v1", v1_route)
 }

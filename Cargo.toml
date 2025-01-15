@@ -15,17 +15,17 @@
 [workspace]
 members = [
   "api/protos",
-  "api/wal-client",
+  "api/client",
   "cmd/morax",
+  "crates/broker",
   "crates/meta",
   "crates/runtime",
   "crates/server",
   "crates/storage",
   "crates/telemetry",
   "crates/version",
-  "crates/wal-broker",
+  "tests/behavior",
   "tests/toolkit",
-  "tests/wal",
   "xtask",
 ]
 
@@ -91,8 +91,8 @@ morax-server = { version = "0.1.1", path = "crates/server" }
 morax-storage = { version = "0.1.1", path = "crates/storage" }
 morax-telemetry = { version = "0.1.1", path = "crates/telemetry" }
 morax-version = { version = "0.1.1", path = "crates/version" }
-morax-wal-broker = { version = "0.1.1", path = "crates/wal-broker" }
-morax-wal-client = { version = "0.1.1", path = "api/wal-client" }
+morax-broker = { version = "0.1.1", path = "crates/broker" }
+morax-client = { version = "0.1.1", path = "api/client" }
 tests-toolkit = { version = "0.1.1", path = "tests/toolkit" }
 
 [workspace.lints.rust]
