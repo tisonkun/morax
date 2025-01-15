@@ -45,18 +45,6 @@ You can also get an impression of the interaction by reading the test cases in:
 
 * [behavior-tests](tests/behavior/tests)
 
-## Design
-
-To support multiple providing message queue and data streaming APIs, Morax is designed as a modular system:
-
-* Common functionalities like logging, async runtime, and protos are shared;
-* Interfaces of meta service and data storage are shared;
-* Each protocol implements their own wire protocol and message format;
-* Each protocol shares the basic topic metadata model, with optional additional specific properties;
-* Each protocol shares the basic data storage model, the payload is protocol specific, with a common header;
-* Thus, each protocol shares similar publishing/producing APIs;
-* On the contrary, each protocol implements their own subscription and consumer group management.
-
 ## License
 
 This project is licensed under [Apache License, Version 2.0](https://github.com/tisonkun/logforth/blob/main/LICENSE).

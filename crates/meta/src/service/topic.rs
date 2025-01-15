@@ -30,26 +30,21 @@ impl PostgresMetaService {
 
         let topic_id = uuid::Uuid::new_v4();
         let topic_name = request.name;
-        let num_partitions = request.partitions;
         let properties = request.properties;
 
-        let topic = sqlx::query_as("INSERT INTO topics (id, name, partitions, properties) VALUES ($1, $2, $3, $4) RETURNING id, name, partitions, properties")
+        let topic = sqlx::query_as("INSERT INTO topics (id, name, properties) VALUES ($1, $2, $3) RETURNING id, name, properties")
             .bind(topic_id)
             .bind(topic_name)
-            .bind(num_partitions)
             .bind(Json(properties))
             .fetch_one(&mut *txn)
             .await
             .change_context_lazy(make_error)?;
 
-        for partition_id in 0..num_partitions {
-            sqlx::query("INSERT INTO topic_partitions (topic_id, partition_id, last_offset) VALUES ($1, $2, 0)")
-                .bind(topic_id)
-                .bind(partition_id)
-                .execute(&mut *txn)
-                .await
-                .change_context_lazy(make_error)?;
-        }
+        sqlx::query("INSERT INTO topic_offsets (topic_id, last_offset) VALUES ($1, 0)")
+            .bind(topic_id)
+            .execute(&mut *txn)
+            .await
+            .change_context_lazy(make_error)?;
 
         txn.commit().await.change_context_lazy(make_error)?;
         Ok(topic)
@@ -59,7 +54,7 @@ impl PostgresMetaService {
         let make_error = || MetaError("failed to get all topics".to_string());
         let pool = self.pool.clone();
 
-        sqlx::query_as("SELECT id, name, partitions, properties FROM topics WHERE id = $1")
+        sqlx::query_as("SELECT id, name, properties FROM topics WHERE id = $1")
             .bind(topic_id)
             .fetch_one(&pool)
             .await
@@ -70,7 +65,7 @@ impl PostgresMetaService {
         let make_error = || MetaError("failed to get all topics".to_string());
         let pool = self.pool.clone();
 
-        sqlx::query_as("SELECT id, name, partitions, properties FROM topics WHERE name = $1")
+        sqlx::query_as("SELECT id, name, properties FROM topics WHERE name = $1")
             .bind(&topic_name)
             .fetch_one(&pool)
             .await
@@ -81,7 +76,7 @@ impl PostgresMetaService {
         let make_error = || MetaError("failed to get all topics".to_string());
         let pool = self.pool.clone();
 
-        sqlx::query_as("SELECT id, name, partitions, properties FROM topics")
+        sqlx::query_as("SELECT id, name, properties FROM topics")
             .fetch_all(&pool)
             .await
             .change_context_lazy(make_error)

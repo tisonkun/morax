@@ -19,14 +19,12 @@ use uuid::Uuid;
 #[derive(Debug, Clone)]
 pub struct CreateTopicRequest {
     pub name: String,
-    pub partitions: i32,
     pub properties: TopicProps,
 }
 
 #[derive(Debug, Clone)]
 pub struct CommitRecordBatchesRequest {
     pub topic_name: String,
-    pub partition_id: i32,
     pub record_len: i32,
     pub split_id: String,
 }
@@ -35,15 +33,13 @@ pub struct CommitRecordBatchesRequest {
 pub struct FetchRecordBatchesRequest {
     pub topic_id: Uuid,
     pub topic_name: String,
-    pub partition_id: i32,
     pub offset: i64,
 }
 
 #[derive(Debug, Clone, sqlx::FromRow)]
-pub struct TopicPartitionSplit {
+pub struct TopicSplit {
     pub topic_id: Uuid,
     pub topic_name: String,
-    pub partition_id: i32,
     pub start_offset: i64,
     pub end_offset: i64,
     pub split_id: String,
@@ -53,6 +49,5 @@ pub struct TopicPartitionSplit {
 pub struct Topic {
     pub id: Uuid,
     pub name: String,
-    pub partitions: i32,
     pub properties: Json<TopicProps>,
 }

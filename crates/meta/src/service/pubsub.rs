@@ -19,7 +19,7 @@ use crate::CommitRecordBatchesRequest;
 use crate::FetchRecordBatchesRequest;
 use crate::MetaError;
 use crate::PostgresMetaService;
-use crate::TopicPartitionSplit;
+use crate::TopicSplit;
 
 impl PostgresMetaService {
     pub async fn new_producer_id(&self) -> MetaResult<i64> {
@@ -35,7 +35,7 @@ impl PostgresMetaService {
     pub async fn fetch_record_batches(
         &self,
         request: FetchRecordBatchesRequest,
-    ) -> MetaResult<Vec<TopicPartitionSplit>> {
+    ) -> MetaResult<Vec<TopicSplit>> {
         let make_error = || MetaError("failed to fetch record batches".to_string());
         let pool = self.pool.clone();
 
@@ -49,9 +49,8 @@ impl PostgresMetaService {
                 .change_context_lazy(make_error)?
         };
 
-        sqlx::query_as("SELECT topic_id, topic_name, partition_id, start_offset, end_offset, split_id FROM topic_partition_splits WHERE topic_id = $1 AND partition_id = $2 AND end_offset > $3 ORDER BY end_offset ASC")
+        sqlx::query_as("SELECT topic_id, topic_name, start_offset, end_offset, split_id FROM topic_splits WHERE topic_id = $1 AND end_offset > $2 ORDER BY end_offset ASC")
             .bind(topic_id)
-            .bind(request.partition_id)
             .bind(request.offset)
             .fetch_all(&pool)
             .await
@@ -74,26 +73,23 @@ impl PostgresMetaService {
                 .await
                 .change_context_lazy(make_error)?;
 
-        let start_offset: i64 = sqlx::query_scalar("SELECT last_offset FROM topic_partitions WHERE topic_id = $1 AND partition_id = $2 FOR UPDATE")
+        let start_offset: i64 = sqlx::query_scalar("SELECT last_offset FROM topic_offsets WHERE topic_id = $1 FOR UPDATE")
             .bind(topic_id)
-            .bind(request.partition_id)
             .fetch_one(&mut *txn)
             .await
             .change_context_lazy(make_error)?;
         let last_offset = start_offset + request.record_len as i64;
-        let end_offset = sqlx::query_scalar("UPDATE topic_partitions SET last_offset = $1 WHERE topic_id = $2 AND partition_id = $3 RETURNING last_offset")
+        let end_offset = sqlx::query_scalar("UPDATE topic_offsets SET last_offset = $1 WHERE topic_id = $2 RETURNING last_offset")
             .bind(last_offset)
             .bind(topic_id)
-            .bind(request.partition_id)
             .fetch_one(&mut *txn)
             .await
             .change_context_lazy(make_error)?;
         debug_assert_eq!(last_offset, end_offset, "last offset mismatch");
 
-        sqlx::query("INSERT INTO topic_partition_splits (topic_id, topic_name, partition_id, start_offset, end_offset, split_id) VALUES ($1, $2, $3, $4, $5, $6)")
+        sqlx::query("INSERT INTO topic_splits (topic_id, topic_name, start_offset, end_offset, split_id) VALUES ($1, $2, $3, $4, $5, $6)")
             .bind(topic_id)
             .bind(topic_name)
-            .bind(request.partition_id)
             .bind(start_offset)
             .bind(end_offset)
             .bind(request.split_id)
