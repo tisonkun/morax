@@ -13,11 +13,13 @@
 // limitations under the License.
 
 mod meta;
+mod runtime;
 mod server;
 mod telemetry;
 mod wal;
 
 pub use meta::*;
+pub use runtime::*;
 pub use server::*;
 pub use telemetry::*;
 pub use wal::*;

@@ -14,11 +14,11 @@
 
 use morax_protos::config::LogConfig;
 use morax_protos::config::MetaServiceConfig;
+use morax_protos::config::RuntimeOptions;
 use morax_protos::config::ServerConfig;
 use morax_protos::config::StderrAppenderConfig;
 use morax_protos::config::TelemetryConfig;
 use morax_protos::config::WALBrokerConfig;
-use morax_runtime::RuntimeOptions;
 use serde::Deserialize;
 use serde::Serialize;
 

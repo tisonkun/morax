@@ -15,17 +15,6 @@
 [server.meta]
 service_url = "postgres://morax:my_secret_password@127.0.0.1:5432/morax_meta"
 
-[server.kafka_broker]
-listen_addr = "0.0.0.0:9092"
-
-[server.kafka_broker.fallback_storage]
-scheme = "s3"
-bucket = "test-bucket"
-region = "us-east-1"
-endpoint = "http://127.0.0.1:9000"
-access_key_id = "minioadmin"
-secret_access_key = "minioadmin"
-
 [server.wal_broker]
 listen_addr = "0.0.0.0:8848"
 
@@ -33,8 +22,6 @@ listen_addr = "0.0.0.0:8848"
 filter = "DEBUG"
 
 [runtime]
-api_runtime_threads = 1
-exec_runtime_threads = 1
-meta_runtime_threads = 1
-data_runtime_threads = 1
-bg_runtime_threads = 1
+#server_runtime_threads = 2
+#exec_runtime_threads = <available_cores>
+#io_runtime_threads = <available_cores>

@@ -48,6 +48,7 @@ const_format = { version = "0.2" }
 ctrlc = { version = "3.4" }
 error-stack = { version = "0.5" }
 fastrace = { version = "0.7", features = ["enable"] }
+fastimer = { version = "0.3", features = ["tokio-time", "logging"] }
 flexbuffers = { version = "24.12" }
 futures = { version = "0.3" }
 gix-discover = { version = "0.37" }
@@ -77,7 +78,6 @@ test-harness = { version = "0.3" }
 testcontainers = { version = "0.23", features = ["blocking"] }
 thiserror = { version = "2.0" }
 tokio = { version = "1.41", features = ["full"] }
-tokio-util = { version = "0.7", features = ["compat"] }
 toml = { version = "0.8" }
 url = { version = "2.5" }
 uuid = { version = "1.11", features = ["v4"] }

@@ -14,7 +14,6 @@
 
 #![allow(clippy::disallowed_types)]
 
-use std::any::type_name;
 use std::future::Future;
 use std::panic::resume_unwind;
 use std::sync::atomic::AtomicUsize;
@@ -22,8 +21,6 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::time::Duration;
 
-use fastrace::future::FutureExt as _;
-use fastrace::Span;
 use futures::ready;
 
 static RUNTIME_ID: AtomicUsize = AtomicUsize::new(0);
@@ -42,17 +39,13 @@ impl Runtime {
 
     /// Spawn a future and execute it in this thread pool.
     ///
-    /// Similar to [`tokio::runtime::Runtime::spawn`].
+    /// Similar to `tokio::runtime::Runtime::spawn()`.
     pub fn spawn<F>(&self, future: F) -> JoinHandle<F::Output>
     where
         F: Future + Send + 'static,
         F::Output: Send + 'static,
     {
-        let name = type_name::<F>();
-        let handle = self
-            .runtime
-            .spawn(future.in_span(Span::enter_with_local_parent(name)));
-        JoinHandle::new(handle)
+        JoinHandle::new(self.runtime.spawn(future))
     }
 
     /// Run the provided function on an executor dedicated to blocking
@@ -75,9 +68,11 @@ impl Runtime {
     }
 }
 
-#[derive(Debug, thiserror::Error)]
-#[error("task was canceled")]
-pub struct CanceledError;
+impl fastimer::Spawn for &'static Runtime {
+    fn spawn<F: Future<Output = ()> + Send + 'static>(&self, future: F) {
+        Runtime::spawn(self, future);
+    }
+}
 
 #[pin_project::pin_project]
 #[derive(Debug)]
@@ -90,14 +85,10 @@ impl<R> JoinHandle<R> {
     fn new(inner: tokio::task::JoinHandle<R>) -> Self {
         Self { inner }
     }
-
-    pub fn cancel(&self) {
-        self.inner.abort()
-    }
 }
 
 impl<R> Future for JoinHandle<R> {
-    type Output = Result<R, CanceledError>;
+    type Output = R;
 
     fn poll(
         self: std::pin::Pin<&mut Self>,
@@ -106,12 +97,12 @@ impl<R> Future for JoinHandle<R> {
         let this = self.project();
         let val = ready!(this.inner.poll(cx));
         match val {
-            Ok(val) => std::task::Poll::Ready(Ok(val)),
+            Ok(val) => std::task::Poll::Ready(val),
             Err(err) => {
                 if err.is_panic() {
                     resume_unwind(err.into_panic())
                 } else {
-                    std::task::Poll::Ready(Err(CanceledError))
+                    unreachable!()
                 }
             }
         }
@@ -196,18 +187,17 @@ mod tests {
     use super::*;
 
     fn runtime() -> Arc<Runtime> {
-        let runtime = Builder::default()
+        let rt = Builder::default()
             .worker_threads(2)
             .thread_name("test_spawn_join")
             .build();
-        Arc::new(runtime.unwrap())
+        Arc::new(rt.unwrap())
     }
 
     #[test]
     fn test_block_on() {
-        let runtime = runtime();
-
-        let out = runtime.block_on(async {
+        let rt = runtime();
+        let out = rt.block_on(async {
             let (tx, rx) = oneshot::channel();
 
             let _ = thread::spawn(move || {
@@ -217,32 +207,28 @@ mod tests {
 
             rx.await.unwrap()
         });
-
         assert_eq!(out, "ZONE");
     }
 
     #[test]
     fn test_spawn_blocking() {
-        let runtime = runtime();
-        let runtime1 = runtime.clone();
-        let out = runtime.block_on(async move {
-            let runtime2 = runtime1.clone();
-            let inner = runtime1
-                .spawn_blocking(move || runtime2.spawn(async move { "hello" }))
-                .await
-                .unwrap();
-
-            inner.await.unwrap()
+        let rt = runtime();
+        let rt_clone = rt.clone();
+        let out = rt.block_on(async move {
+            let rt = rt_clone;
+            let rt_clone = rt.clone();
+            let inner = rt
+                .spawn_blocking(move || rt_clone.spawn(async move { "hello" }))
+                .await;
+            inner.await
         });
-
         assert_eq!(out, "hello")
     }
 
     #[test]
     fn test_spawn_join() {
-        let runtime = runtime();
-        let handle = runtime.spawn(async { 1 + 1 });
-
-        assert_eq!(2, runtime.block_on(handle).unwrap());
+        let rt = runtime();
+        let handle = rt.spawn(async { 1 + 1 });
+        assert_eq!(2, rt.block_on(handle));
     }
 }
