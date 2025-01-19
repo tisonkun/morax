@@ -62,3 +62,36 @@ async fn test_simple_pubsub(testkit: Testkit) {
         .unwrap();
     assert_compact_debug_snapshot!(r, @r###"Success(ReadLogResponse { entries: [Entry { index: Some(0), data: "MA==" }, Entry { index: Some(1), data: "MQ==" }] })"###);
 }
+
+#[test(harness)]
+async fn test_simple_pubsub_dup(testkit: Testkit) {
+    let name = "db_log".to_string();
+    let properties = testkit.topic_props;
+
+    let r = testkit
+        .client
+        .create_log(CreateLogRequest {
+            name: name.clone(),
+            properties,
+        })
+        .await
+        .unwrap();
+    assert_compact_debug_snapshot!(r, @r###"Success(CreateLogResponse { name: "db_log" })"###);
+
+    let r = testkit
+        .client
+        .append_log(AppendLogRequest {
+            name: name.clone(),
+            entries: vec![make_entry("0"), make_entry("1")],
+        })
+        .await
+        .unwrap();
+    assert_compact_debug_snapshot!(r, @"Success(AppendLogResponse { offsets: 0..2 })");
+
+    let r = testkit
+        .client
+        .read_log(ReadLogRequest { name, offset: 0 })
+        .await
+        .unwrap();
+    assert_compact_debug_snapshot!(r, @r###"Success(ReadLogResponse { entries: [Entry { index: Some(0), data: "MA==" }, Entry { index: Some(1), data: "MQ==" }] })"###);
+}
