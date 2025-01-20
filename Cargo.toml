@@ -131,6 +131,6 @@ targets = [
 ]
 
 [profile.dist]
-inherits = "release"
 codegen-units = 1
+inherits = "release"
 lto = "fat"
