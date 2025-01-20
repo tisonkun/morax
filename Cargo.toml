@@ -48,7 +48,6 @@ const_format = { version = "0.2" }
 ctrlc = { version = "3.4" }
 error-stack = { version = "0.5" }
 fastimer = { version = "0.4", features = ["tokio-time", "logging"] }
-fastrace = { version = "0.7", features = ["enable"] }
 flexbuffers = { version = "24.12" }
 futures = { version = "0.3" }
 gix-discover = { version = "0.37" }
@@ -73,9 +72,11 @@ sqlx = { version = "0.8", features = [
   "runtime-tokio-rustls",
   "uuid",
 ] }
-tempfile = { version = "3.13" }
 test-harness = { version = "0.3" }
-testcontainers = { version = "0.23", features = ["blocking"] }
+testcontainers = { git = "https://github.com/the-wondersmith/testcontainers-rs.git", branch = "fix/reusable-containers", features = [
+  "blocking",
+  "reusable-containers",
+] }
 thiserror = { version = "2.0" }
 tokio = { version = "1.41", features = ["full"] }
 toml = { version = "0.8" }
