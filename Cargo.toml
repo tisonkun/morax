@@ -39,7 +39,6 @@ repository = "https://github.com/tisonkun/morax/"
 version = "0.0.1"
 
 [workspace.dependencies]
-backon = { version = "1.5.0", features = ["tokio-sleep"] }
 base64 = { version = "0.22" }
 better-panic = { version = "0.3" }
 build-data = { version = "0.2" }
@@ -50,13 +49,12 @@ error-stack = { version = "0.5" }
 fastimer = { version = "0.9.0", features = ["logging"] }
 futures = { version = "0.3.31" }
 gix-discover = { version = "0.39.0" }
-insta = { version = "1.40", features = ["json"] }
+insta = { version = "1.40", features = ["json", "redactions"] }
 jiff = { version = "0.2.9", features = ["serde"] }
 local-ip-address = { version = "0.6" }
 log = { version = "0.4", features = ["kv_unstable_serde", "serde"] }
 logforth = { version = "0.24.0" }
 mea = { version = "0.3.4" }
-mime = { version = "0.3" }
 opendal = { version = "0.53.1" }
 pin-project = { version = "1.1" }
 poem = { version = "3.1", features = ["compression", "rustls"] }
@@ -72,7 +70,6 @@ sqlx = { version = "0.8", features = [
   "runtime-tokio-rustls",
   "uuid",
 ] }
-tempfile = { version = "3.13" }
 test-harness = { version = "0.3" }
 testcontainers = { version = "0.23", features = ["blocking"] }
 thiserror = { version = "2.0" }

@@ -16,6 +16,7 @@ use std::sync::Arc;
 
 use morax_api::property::StorageProperty;
 use morax_api::request::AcknowledgeRequest;
+use morax_api::request::AcknowledgeResponse;
 use morax_api::request::CreateSubscriptionRequest;
 use morax_api::request::CreateSubscriptionResponse;
 use morax_api::request::CreateTopicRequest;
@@ -102,13 +103,13 @@ pub async fn acknowledge(
     Data(broker): Data<&Broker>,
     Path(subscription_name): Path<String>,
     Json(request): Json<AcknowledgeRequest>,
-) -> poem::Result<()> {
-    broker
+) -> poem::Result<Json<AcknowledgeResponse>> {
+    let response = broker
         .acknowledge(subscription_name, request)
         .await
         .inspect_err(|err| log::error!(err:?; "failed to acknowledge"))
         .map_err(|err| poem::Error::new(err.into_error(), StatusCode::UNPROCESSABLE_ENTITY))?;
-    Ok(())
+    Ok(Json(response))
 }
 
 pub fn make_broker_router(

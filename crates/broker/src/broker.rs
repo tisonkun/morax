@@ -19,6 +19,7 @@ use error_stack::ResultExt;
 use morax_api::property::StorageProperty;
 use morax_api::property::TopicProperty;
 use morax_api::request::AcknowledgeRequest;
+use morax_api::request::AcknowledgeResponse;
 use morax_api::request::CreateSubscriptionRequest;
 use morax_api::request::CreateSubscriptionResponse;
 use morax_api::request::CreateTopicRequest;
@@ -220,7 +221,7 @@ impl Broker {
         &self,
         subscription_name: String,
         request: AcknowledgeRequest,
-    ) -> Result<(), BrokerError> {
+    ) -> Result<AcknowledgeResponse, BrokerError> {
         let make_error = || {
             BrokerError(format!(
                 "failed to acknowledge messages for subscription {subscription_name}"
@@ -247,7 +248,7 @@ impl Broker {
             .await
             .change_context_lazy(make_error)?;
 
-        Ok(())
+        Ok(AcknowledgeResponse {})
     }
 }
 

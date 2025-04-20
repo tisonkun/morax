@@ -14,6 +14,7 @@
 
 use error_stack::ResultExt;
 use morax_api::request::AcknowledgeRequest;
+use morax_api::request::AcknowledgeResponse;
 use morax_api::request::CreateSubscriptionRequest;
 use morax_api::request::CreateSubscriptionResponse;
 use morax_api::request::CreateTopicRequest;
@@ -171,7 +172,7 @@ impl HTTPClient {
         &self,
         subscription_name: String,
         request: AcknowledgeRequest,
-    ) -> error_stack::Result<HTTPResponse<()>, ClientError> {
+    ) -> error_stack::Result<HTTPResponse<AcknowledgeResponse>, ClientError> {
         let make_error = || ClientError(format!("failed to acknowledge: {request:?}"));
 
         let response = self

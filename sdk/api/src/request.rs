@@ -108,3 +108,6 @@ pub struct AcknowledgeRequest {
     /// Required. The acknowledgment ID for the messages being acknowledged. Must not be empty.
     pub ack_ids: Vec<String>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AcknowledgeResponse {}

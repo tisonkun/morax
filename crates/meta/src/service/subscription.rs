@@ -133,6 +133,7 @@ impl PostgresMetaService {
             WHERE subscription_id = $1 FOR UPDATE
             "#,
         )
+        .bind(request.subscription_id)
         .fetch_one(&mut *txn)
         .await
         .change_context_lazy(make_error)?;
