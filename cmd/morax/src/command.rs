@@ -17,9 +17,9 @@ use std::path::PathBuf;
 use clap::Parser;
 use clap::Subcommand;
 use error_stack::ResultExt;
+use morax_api::config::Config;
 use morax_version::version;
 
-use crate::config::Config;
 use crate::Error;
 
 #[derive(Debug, Parser)]
@@ -106,14 +106,13 @@ pub struct CommandGenerate {
 #[derive(Debug, Subcommand)]
 pub enum GenerateTarget {
     /// Generate the default server config.
-    #[command()]
-    SampleConfig,
+    Config,
 }
 
 impl CommandGenerate {
     pub fn run(self) -> error_stack::Result<(), Error> {
         match self.cmd {
-            GenerateTarget::SampleConfig => {
+            GenerateTarget::Config => {
                 let config = Config::default();
                 let content = toml::to_string(&config).change_context_lazy(|| {
                     Error("default config must be always valid".to_string())

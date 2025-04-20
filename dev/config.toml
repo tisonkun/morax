@@ -18,7 +18,17 @@ service_url = "postgres://morax:my_secret_password@127.0.0.1:5432/morax_meta"
 [server.broker]
 listen_addr = "0.0.0.0:8848"
 
-[telemetry.log.stderr]
+[server.default_storage]
+scheme = "s3"
+bucket = "test-bucket"
+region = "us-east-1"
+prefix = "/"
+endpoint = "http://127.0.0.1:9000"
+access_key_id = "minioadmin"
+secret_access_key = "minioadmin"
+virtual_host_style = false
+
+[telemetry.logs.stderr]
 filter = "DEBUG"
 
 [runtime]

@@ -14,15 +14,16 @@
 
 [package]
 name = "morax-runtime"
-publish = true
-
-description = "Global runtimes and async utilities used by Morax"
+publish = false
 
 edition.workspace = true
 license.workspace = true
 readme.workspace = true
 repository.workspace = true
 version.workspace = true
+
+[package.metadata.release]
+release = false
 
 [features]
 test = []
@@ -32,7 +33,7 @@ better-panic = { workspace = true }
 fastimer = { workspace = true }
 futures = { workspace = true }
 log = { workspace = true }
-morax-protos = { workspace = true }
+morax-api = { workspace = true }
 pin-project = { workspace = true }
 tokio = { workspace = true }
 

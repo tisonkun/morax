@@ -20,8 +20,9 @@ use error_stack::Result;
 use error_stack::ResultExt;
 use mea::latch::Latch;
 use mea::waitgroup::WaitGroup;
+use morax_api::config::BrokerConfig;
+use morax_api::property::StorageProperty;
 use morax_meta::PostgresMetaService;
-use morax_protos::config::BrokerConfig;
 use poem::listener::Acceptor;
 use poem::listener::Listener;
 
@@ -32,6 +33,7 @@ use crate::ServerError;
 #[derive(Debug)]
 pub(crate) struct BrokerBootstrapContext {
     pub(crate) config: BrokerConfig,
+    pub(crate) default_storage: StorageProperty,
     pub(crate) meta_service: Arc<PostgresMetaService>,
     pub(crate) wg: WaitGroup,
     pub(crate) shutdown: Arc<Latch>,
@@ -42,6 +44,7 @@ pub(crate) async fn bootstrap_broker(
 ) -> Result<(SocketAddr, ServerFuture<()>), ServerError> {
     let BrokerBootstrapContext {
         config,
+        default_storage,
         meta_service,
         wg,
         shutdown,
@@ -65,7 +68,7 @@ pub(crate) async fn bootstrap_broker(
         let shutdown_clone = shutdown;
         let wg_clone = wg;
 
-        let route = morax_broker::make_api_router(meta_service);
+        let route = morax_broker::make_broker_router(meta_service, default_storage);
         let signal = async move {
             log::info!("Broker has started on [{broker_listen_addr}]");
             drop(wg_clone);

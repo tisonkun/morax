@@ -27,15 +27,15 @@ release = false
 
 [dependencies]
 local-ip-address = { workspace = true }
-morax-protos = { workspace = true }
+morax-api = { workspace = true }
 morax-runtime = { workspace = true, features = ["test"] }
 morax-server = { workspace = true }
+morax-storage = { workspace = true }
 opendal = { workspace = true, features = ["services-s3"] }
 regex = { workspace = true }
 scopeguard = { workspace = true }
 serde = { workspace = true }
 sqlx = { workspace = true }
-tempfile = { workspace = true }
 testcontainers = { workspace = true }
 toml = { workspace = true }
 url = { workspace = true }

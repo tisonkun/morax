@@ -12,28 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::num::NonZeroUsize;
+
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TelemetryConfig {
-    #[serde(default = "LogConfig::disabled")]
-    pub log: LogConfig,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LogConfig {
+#[derive(Default, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RuntimeOptions {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub stderr: Option<StderrAppenderConfig>,
-}
-
-impl LogConfig {
-    pub fn disabled() -> Self {
-        Self { stderr: None }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StderrAppenderConfig {
-    pub filter: String,
+    pub server_runtime_threads: Option<NonZeroUsize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub io_runtime_threads: Option<NonZeroUsize>,
 }

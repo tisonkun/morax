@@ -12,16 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod buffer_by_unordered;
-
 mod global;
 pub use global::*;
 
 mod runtime;
 pub use runtime::*;
-
-mod stream;
-pub use stream::*;
 
 /// Returns the number of logical CPUs on the current machine.
 // This method fills the gap that `std::thread::available_parallelism()`

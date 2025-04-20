@@ -24,18 +24,18 @@ pub async fn bootstrap(pool: PgPool) -> error_stack::Result<(), sqlx::Error> {
     txn.execute("INSERT INTO meta_version (version) VALUES (1) ON CONFLICT DO NOTHING;")
         .await?;
 
-    // create a sequence for producer ids
-    txn.execute("CREATE SEQUENCE IF NOT EXISTS producer_ids CYCLE")
-        .await?;
+    // create a sequence for object ids
+    txn.execute("CREATE SEQUENCE object_ids CYCLE").await?;
 
     // topics
     txn.execute(
         r#"
 CREATE TABLE IF NOT EXISTS topics (
-    id UUID NOT NULL,
-    name TEXT NOT NULL,
+    topic_id BIGINT NOT NULL,
+    topic_name TEXT NOT NULL,
     properties JSONB NOT NULL,
-    UNIQUE (id), UNIQUE (name)
+    UNIQUE (topic_id),
+    UNIQUE (topic_name)
 );
 "#,
     )
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS topics (
     txn.execute(
         r#"
 CREATE TABLE IF NOT EXISTS topic_offsets (
-    topic_id UUID NOT NULL,
+    topic_id BIGINT NOT NULL,
     last_offset BIGINT NOT NULL,
     UNIQUE (topic_id)
 );
@@ -58,11 +58,40 @@ CREATE TABLE IF NOT EXISTS topic_offsets (
     txn.execute(
         r#"
 CREATE TABLE IF NOT EXISTS topic_splits (
-    topic_id UUID NOT NULL,
-    topic_name TEXT NOT NULL,
+    topic_id BIGINT NOT NULL,
     start_offset BIGINT NOT NULL,
     end_offset BIGINT NOT NULL,
-    split_id TEXT NOT NULL
+    split_id UUID NOT NULL
+);
+CREATE INDEX IF NOT EXISTS topic_splits_topic_id_idx ON topic_splits (topic_id);
+CREATE INDEX IF NOT EXISTS topic_splits_start_offset_idx ON topic_splits (start_offset);
+CREATE INDEX IF NOT EXISTS topic_splits_end_offset_idx ON topic_splits (end_offset);
+"#,
+    )
+    .await?;
+
+    // subscriptions
+    txn.execute(
+        r#"
+CREATE TABLE IF NOT EXISTS subscriptions (
+    subscription_id BIGINT NOT NULL,
+    subscription_name TEXT NOT NULL,
+    topic_id BIGINT NOT NULL,
+    UNIQUE (subscription_id),
+    UNIQUE (subscription_name)
+);
+"#,
+    )
+    .await?;
+
+    // acknowledgements
+    txn.execute(
+        r#"
+CREATE TABLE IF NOT EXISTS acknowledgements (
+    subscription_id BIGINT NOT NULL,
+    topic_id BIGINT NOT NULL,
+    acks INT8RANGE[] NOT NULL DEFAULT '{}',
+    UNIQUE (subscription_id)
 );
 "#,
     )

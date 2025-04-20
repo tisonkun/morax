@@ -13,8 +13,9 @@
 // limitations under the License.
 
 use error_stack::bail;
+use error_stack::Result;
 use error_stack::ResultExt;
-use morax_protos::config::MetaServiceConfig;
+use morax_api::config::MetaServiceConfig;
 use sqlx::migrate::MigrateDatabase;
 use sqlx::postgres::PgPoolOptions;
 use sqlx::Connection;
@@ -25,16 +26,16 @@ use sqlx::Postgres;
 use crate::bootstrap::bootstrap;
 use crate::MetaError;
 
-mod pubsub;
+mod publish;
+mod pull;
+mod subscription;
 mod topic;
 
-type MetaResult<T> = error_stack::Result<T, MetaError>;
-
-async fn connect(url: &str) -> error_stack::Result<PgPool, sqlx::Error> {
+async fn connect(url: &str) -> Result<PgPool, sqlx::Error> {
     Ok(PgPoolOptions::new().connect(url).await?)
 }
 
-async fn resolve_meta_version(url: &str) -> error_stack::Result<i32, sqlx::Error> {
+async fn resolve_meta_version(url: &str) -> Result<i32, sqlx::Error> {
     let mut conn = PgConnection::connect(url).await?;
 
     let exists = sqlx::query_scalar(
@@ -64,7 +65,7 @@ pub struct PostgresMetaService {
 }
 
 impl PostgresMetaService {
-    pub async fn new(config: &MetaServiceConfig) -> MetaResult<Self> {
+    pub async fn new(config: &MetaServiceConfig) -> Result<Self, MetaError> {
         let make_error = || MetaError("failed to connect and bootstrap the database".to_string());
 
         let url = config.service_url.as_str();

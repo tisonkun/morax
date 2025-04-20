@@ -39,7 +39,7 @@ Currently, Morax supports basic PubSub APIs. You can try it out with the followi
     ```
 
 
-The broker is now running at `localhost:8848`. You can talk to it with the [`morax-client`](api/client). The wire protocol is HTTP so that all the HTTP ecosystem is ready for use.
+The broker is now running at `localhost:8848`. You can talk to it with the [`morax-client`](sdk/client). The wire protocol is HTTP so that all the HTTP ecosystem is ready for use.
 
 You can also get an impression of the interaction by reading the test cases in:
 

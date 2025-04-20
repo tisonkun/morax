@@ -13,10 +13,10 @@
 # limitations under the License.
 
 [package]
-name = "morax-client"
+name = "morax-api"
 publish = true
 
-description = "A client for Morax server"
+description = "This crate defines public APIs for Morax."
 
 edition.workspace = true
 license.workspace = true
@@ -25,13 +25,8 @@ repository.workspace = true
 version.workspace = true
 
 [dependencies]
-backon = { workspace = true }
-error-stack = { workspace = true }
-morax-protos = { workspace = true }
-reqwest = { workspace = true }
+jiff = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
-thiserror = { workspace = true }
 
 [lints]
 workspace = true

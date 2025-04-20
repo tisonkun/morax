@@ -14,9 +14,10 @@
 
 use std::borrow::Cow;
 
-use morax_protos::config::MetaServiceConfig;
-use morax_protos::property::StorageProps;
-use opendal::services::S3Config;
+use morax_api::config::MetaServiceConfig;
+use morax_api::property::default_prefix;
+use morax_api::property::S3StorageProperty;
+use morax_api::property::StorageProperty;
 use testcontainers::core::ContainerPort;
 use testcontainers::core::WaitFor;
 use testcontainers::runners::SyncRunner;
@@ -114,18 +115,19 @@ impl Image for MinIO {
     }
 }
 
-fn make_s3_props(container: &Container<MinIO>) -> StorageProps {
+fn make_s3_props(container: &Container<MinIO>) -> StorageProperty {
     let host = local_ip_address::local_ip().unwrap();
     let port = container.get_host_port_ipv4(9000).unwrap();
 
-    let mut config = S3Config::default();
-    config.bucket = BUCKET.to_string();
-    config.region = Some(REGION.to_string());
-    config.endpoint = Some(format!("http://{host}:{port}"));
-    config.access_key_id = Some(ACCESS_KEY_ID.to_string());
-    config.secret_access_key = Some(SECRET_ACCESS_KEY.to_string());
-
-    StorageProps::S3(config)
+    StorageProperty::S3(S3StorageProperty {
+        bucket: BUCKET.to_string(),
+        region: REGION.to_string(),
+        prefix: default_prefix(),
+        endpoint: format!("http://{host}:{port}"),
+        access_key_id: ACCESS_KEY_ID.to_string(),
+        secret_access_key: SECRET_ACCESS_KEY.to_string(),
+        virtual_host_style: false,
+    })
 }
 
 fn maybe_docker_error(err: TestcontainersError) -> TestcontainersError {

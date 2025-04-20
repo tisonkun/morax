@@ -28,9 +28,8 @@ release = false
 [dependencies]
 base64 = { workspace = true }
 insta = { workspace = true }
-log = { workspace = true }
+morax-api = { workspace = true }
 morax-client = { workspace = true }
-morax-protos = { workspace = true }
 morax-runtime = { workspace = true, features = ["test"] }
 morax-telemetry = { workspace = true }
 reqwest = { workspace = true }

@@ -14,15 +14,16 @@
 
 [package]
 name = "morax"
-publish = true
-
-description = "A message queue and data streaming platform based on cloud native services."
+publish = false
 
 edition.workspace = true
 license.workspace = true
 readme.workspace = true
 repository.workspace = true
 version.workspace = true
+
+[package.metadata.release]
+release = false
 
 [[bin]]
 doc = false
@@ -33,13 +34,11 @@ path = "src/main.rs"
 clap = { workspace = true }
 ctrlc = { workspace = true }
 error-stack = { workspace = true }
-log = { workspace = true }
-morax-protos = { workspace = true }
+morax-api = { workspace = true }
 morax-runtime = { workspace = true }
 morax-server = { workspace = true }
 morax-telemetry = { workspace = true }
 morax-version = { workspace = true }
-opendal = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 toml = { workspace = true }

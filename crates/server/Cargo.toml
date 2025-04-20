@@ -14,9 +14,7 @@
 
 [package]
 name = "morax-server"
-publish = true
-
-description = "The Morax Server that bundles all the broker services into one facade"
+publish = false
 
 edition.workspace = true
 license.workspace = true
@@ -24,15 +22,18 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.release]
+release = false
+
 [dependencies]
 error-stack = { workspace = true }
 futures = { workspace = true }
 local-ip-address = { workspace = true }
 log = { workspace = true }
 mea = { workspace = true }
+morax-api = { workspace = true }
 morax-broker = { workspace = true }
 morax-meta = { workspace = true }
-morax-protos = { workspace = true }
 morax-runtime = { workspace = true }
 poem = { workspace = true }
 thiserror = { workspace = true }

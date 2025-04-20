@@ -14,23 +14,27 @@
 
 use std::sync::Arc;
 
+use morax_api::property::StorageProperty;
+use morax_api::request::AcknowledgeRequest;
+use morax_api::request::CreateSubscriptionRequest;
+use morax_api::request::CreateSubscriptionResponse;
+use morax_api::request::CreateTopicRequest;
+use morax_api::request::CreateTopicResponse;
+use morax_api::request::PublishMessageRequest;
+use morax_api::request::PublishMessageResponse;
+use morax_api::request::PullMessageRequest;
+use morax_api::request::PullMessageResponse;
 use morax_meta::PostgresMetaService;
-use morax_protos::request::AppendLogRequest;
-use morax_protos::request::AppendLogResponse;
-use morax_protos::request::CreateLogRequest;
-use morax_protos::request::CreateLogResponse;
-use morax_protos::request::ErrorCode;
-use morax_protos::request::ReadLogRequest;
-use morax_protos::request::ReadLogResponse;
+use poem::http::StatusCode;
 use poem::middleware::AddData;
 use poem::middleware::Compression;
 use poem::web::Data;
 use poem::web::Json;
+use poem::web::Path;
 use poem::EndpointExt;
 use poem::Route;
 
 use crate::broker::Broker;
-use crate::error::ErrorWithCode;
 
 #[poem::handler]
 pub async fn health_check() -> poem::Result<String> {
@@ -38,52 +42,94 @@ pub async fn health_check() -> poem::Result<String> {
 }
 
 #[poem::handler]
-pub async fn create(
+pub async fn create_topic(
     Data(broker): Data<&Broker>,
-    Json(request): Json<CreateLogRequest>,
-) -> poem::Result<Json<CreateLogResponse>> {
+    Path(topic_name): Path<String>,
+    Json(request): Json<CreateTopicRequest>,
+) -> poem::Result<Json<CreateTopicResponse>> {
     let response = broker
-        .create(request)
+        .create_topic(topic_name, request)
         .await
-        .inspect_err(|err| log::error!(err:?; "failed to create log"))
-        .map_err(ErrorWithCode::with_fallback_status(ErrorCode::Unexpected))?;
+        .inspect_err(|err| log::error!(err:?; "failed to create topic"))
+        .map_err(|err| poem::Error::new(err.into_error(), StatusCode::UNPROCESSABLE_ENTITY))?;
     Ok(Json(response))
 }
 
 #[poem::handler]
-pub async fn read(
+pub async fn publish(
     Data(broker): Data<&Broker>,
-    Json(request): Json<ReadLogRequest>,
-) -> poem::Result<Json<ReadLogResponse>> {
+    Path(topic_name): Path<String>,
+    Json(request): Json<PublishMessageRequest>,
+) -> poem::Result<Json<PublishMessageResponse>> {
     let response = broker
-        .read_at(request)
+        .publish(topic_name, request)
         .await
-        .inspect_err(|err| log::error!(err:?; "failed to read log"))
-        .map_err(ErrorWithCode::with_fallback_status(ErrorCode::Unexpected))?;
+        .inspect_err(|err| log::error!(err:?; "failed to publish messages"))
+        .map_err(|err| poem::Error::new(err.into_error(), StatusCode::UNPROCESSABLE_ENTITY))?;
     Ok(Json(response))
 }
 
 #[poem::handler]
-pub async fn append(
+pub async fn create_subscription(
     Data(broker): Data<&Broker>,
-    Json(request): Json<AppendLogRequest>,
-) -> poem::Result<Json<AppendLogResponse>> {
+    Path(subscription_name): Path<String>,
+    Json(request): Json<CreateSubscriptionRequest>,
+) -> poem::Result<Json<CreateSubscriptionResponse>> {
     let response = broker
-        .append(request)
+        .create_subscription(subscription_name, request)
         .await
-        .inspect_err(|err| log::error!(err:?; "failed to append log"))
-        .map_err(ErrorWithCode::with_fallback_status(ErrorCode::Unexpected))?;
+        .inspect_err(|err| log::error!(err:?; "failed to create subscription"))
+        .map_err(|err| poem::Error::new(err.into_error(), StatusCode::UNPROCESSABLE_ENTITY))?;
     Ok(Json(response))
 }
 
-pub fn make_api_router(meta: Arc<PostgresMetaService>) -> Route {
-    let broker = Broker::new(meta);
+#[poem::handler]
+pub async fn pull(
+    Data(broker): Data<&Broker>,
+    Path(subscription_name): Path<String>,
+    Json(request): Json<PullMessageRequest>,
+) -> poem::Result<Json<PullMessageResponse>> {
+    let response = broker
+        .pull(subscription_name, request)
+        .await
+        .inspect_err(|err| log::error!(err:?; "failed to pull messages"))
+        .map_err(|err| poem::Error::new(err.into_error(), StatusCode::UNPROCESSABLE_ENTITY))?;
+    Ok(Json(response))
+}
+
+#[poem::handler]
+pub async fn acknowledge(
+    Data(broker): Data<&Broker>,
+    Path(subscription_name): Path<String>,
+    Json(request): Json<AcknowledgeRequest>,
+) -> poem::Result<()> {
+    broker
+        .acknowledge(subscription_name, request)
+        .await
+        .inspect_err(|err| log::error!(err:?; "failed to acknowledge"))
+        .map_err(|err| poem::Error::new(err.into_error(), StatusCode::UNPROCESSABLE_ENTITY))?;
+    Ok(())
+}
+
+pub fn make_broker_router(
+    meta: Arc<PostgresMetaService>,
+    default_storage: StorageProperty,
+) -> Route {
+    let broker = Broker::new(meta, default_storage);
 
     let v1_route = Route::new()
         .at("/health", poem::get(health_check))
-        .at("/create", poem::post(create))
-        .at("/read", poem::post(read))
-        .at("/append", poem::post(append))
+        .at("/topics/:topic_name", poem::post(create_topic))
+        .at("/topics/:topic_name/publish", poem::post(publish))
+        .at(
+            "/subscriptions/:subscription_name",
+            poem::post(create_subscription),
+        )
+        .at("/subscriptions/:subscription_name/pull", poem::post(pull))
+        .at(
+            "/subscriptions/:subscription_name/acknowledge",
+            poem::post(acknowledge),
+        )
         .with(Compression::new())
         .with(AddData::new(broker));
 

@@ -14,9 +14,7 @@
 
 [package]
 name = "morax-meta"
-publish = true
-
-description = "The Meta Service for Morax that manages the metadata with ACID properties"
+publish = false
 
 edition.workspace = true
 license.workspace = true
@@ -24,10 +22,13 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.release]
+release = false
+
 [dependencies]
 error-stack = { workspace = true }
 log = { workspace = true }
-morax-protos = { workspace = true }
+morax-api = { workspace = true }
 morax-runtime = { workspace = true }
 serde = { workspace = true }
 sqlx = { workspace = true }

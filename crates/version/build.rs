@@ -18,6 +18,7 @@ use std::path::Path;
 
 use build_data::format_timestamp;
 use build_data::get_source_time;
+use shadow_rs::ShadowBuilder;
 use shadow_rs::CARGO_METADATA;
 use shadow_rs::CARGO_TREE;
 
@@ -67,7 +68,7 @@ fn main() -> shadow_rs::SdResult<()> {
     // made as a submodule in another repo.
     let src_path = env::var("CARGO_WORKSPACE_DIR").or_else(|_| env::var("CARGO_MANIFEST_DIR"))?;
     let out_path = env::var("OUT_DIR")?;
-    let _ = shadow_rs::ShadowBuilder::builder()
+    let _ = ShadowBuilder::builder()
         .src_path(src_path)
         .out_path(out_path)
         // exclude these two large constants that we don't need
