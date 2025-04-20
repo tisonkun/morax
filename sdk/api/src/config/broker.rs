@@ -15,11 +15,10 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-use crate::config::BrokerConfig;
-use crate::config::MetaServiceConfig;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ServerConfig {
-    pub meta: MetaServiceConfig,
-    pub broker: BrokerConfig,
+#[serde(deny_unknown_fields)]
+pub struct BrokerConfig {
+    pub listen_addr: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub advertise_addr: Option<String>,
 }

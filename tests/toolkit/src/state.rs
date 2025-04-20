@@ -14,12 +14,12 @@
 
 use std::net::SocketAddr;
 
-use morax_protos::config::BrokerConfig;
-use morax_protos::config::MetaServiceConfig;
-use morax_protos::config::ServerConfig;
-use morax_protos::property::StorageProps;
+use morax_api::config::BrokerConfig;
+use morax_api::config::MetaServiceConfig;
+use morax_api::config::ServerConfig;
+use morax_api::property::StorageProperty;
 use morax_server::ServerState;
-use opendal::Operator;
+use morax_storage::make_op;
 use serde::Deserialize;
 use serde::Serialize;
 use sqlx::migrate::MigrateDatabase;
@@ -44,7 +44,7 @@ pub struct TestEnvState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestEnvProps {
     pub meta: MetaServiceConfig,
-    pub storage: StorageProps,
+    pub storage: StorageProperty,
 }
 
 pub(crate) fn read_test_env_props() -> Option<TestEnvProps> {
@@ -78,6 +78,7 @@ pub fn start_test_server(test_name: &str) -> Option<TestServerState> {
         .block_on(morax_server::start(ServerConfig {
             broker,
             meta: env_props.meta.clone(),
+            default_storage: env_props.storage.clone(),
         }))
         .unwrap();
     Some(TestServerState {
@@ -115,19 +116,20 @@ pub fn make_test_env_state(test_name: &str) -> Option<TestEnvState> {
     )));
 
     match props.storage {
-        StorageProps::S3(ref mut config) => {
-            config.root = Some(format!("/{test_name}/"));
-            let client = Operator::from_config(config.clone()).unwrap().finish();
-            morax_runtime::test_runtime().block_on(async {
-                client.remove_all("/").await.unwrap();
-            });
-            _drop_guards.push(Box::new(scopeguard::guard_on_success((), move |()| {
-                morax_runtime::test_runtime().block_on(async move {
-                    client.remove_all("/").await.unwrap();
-                });
-            })));
+        StorageProperty::S3(ref mut config) => {
+            config.prefix = format!("/{test_name}/");
         }
     }
+
+    let client = make_op(props.storage.clone()).unwrap();
+    morax_runtime::test_runtime().block_on(async {
+        client.remove_all("/").await.unwrap();
+    });
+    _drop_guards.push(Box::new(scopeguard::guard_on_success((), move |()| {
+        morax_runtime::test_runtime().block_on(async move {
+            client.remove_all("/").await.unwrap();
+        });
+    })));
 
     // ensure containers get dropped last
     _drop_guards.reverse();

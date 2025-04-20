@@ -15,13 +15,13 @@
 use logforth::append;
 use logforth::filter::env_filter::EnvFilterBuilder;
 use logforth::filter::EnvFilter;
-use morax_protos::config::TelemetryConfig;
+use morax_api::config::TelemetryConfig;
 
 pub fn init(config: &TelemetryConfig) {
     let mut logger = logforth::builder();
 
     // stderr logger
-    if let Some(ref stderr) = config.log.stderr {
+    if let Some(ref stderr) = config.logs.stderr {
         logger = logger.dispatch(|d| {
             d.filter(make_rust_log_filter_with_default_env(&stderr.filter))
                 .append(append::Stderr::default())

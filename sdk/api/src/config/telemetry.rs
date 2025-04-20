@@ -12,14 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod broker;
-mod meta;
-mod runtime;
-mod server;
-mod telemetry;
+use serde::Deserialize;
+use serde::Serialize;
 
-pub use broker::*;
-pub use meta::*;
-pub use runtime::*;
-pub use server::*;
-pub use telemetry::*;
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TelemetryConfig {
+    #[serde(default = "LogsConfig::disabled")]
+    pub logs: LogsConfig,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogsConfig {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stderr: Option<StderrAppenderConfig>,
+}
+
+impl LogsConfig {
+    pub fn disabled() -> Self {
+        Self { stderr: None }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StderrAppenderConfig {
+    pub filter: String,
+}

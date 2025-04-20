@@ -13,10 +13,9 @@
 // limitations under the License.
 
 mod broker;
-mod error;
 mod http;
 
-pub use http::make_api_router;
+pub use http::make_broker_router;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]

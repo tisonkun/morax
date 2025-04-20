@@ -12,36 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use error_stack::Result;
 use error_stack::ResultExt;
 use sqlx::types::Json;
 
-use crate::service::MetaResult;
 use crate::CreateTopicRequest;
 use crate::MetaError;
 use crate::PostgresMetaService;
 use crate::Topic;
 
 impl PostgresMetaService {
-    pub async fn create_topic(&self, request: CreateTopicRequest) -> MetaResult<Topic> {
+    pub async fn create_topic(&self, request: CreateTopicRequest) -> Result<Topic, MetaError> {
         let make_error = || MetaError("failed to create topic".to_string());
         let pool = self.pool.clone();
 
         let mut txn = pool.begin().await.change_context_lazy(make_error)?;
 
-        let topic_id = uuid::Uuid::new_v4();
         let topic_name = request.name;
         let properties = request.properties;
 
-        let topic = sqlx::query_as("INSERT INTO topics (id, name, properties) VALUES ($1, $2, $3) RETURNING id, name, properties")
-            .bind(topic_id)
-            .bind(topic_name)
-            .bind(Json(properties))
-            .fetch_one(&mut *txn)
-            .await
-            .change_context_lazy(make_error)?;
+        let topic: Topic = sqlx::query_as(
+            r#"
+                INSERT INTO topics (topic_id, topic_name, properties)
+                VALUES (nextval('object_ids'), $1, $2)
+                RETURNING topic_id, topic_name, properties
+                "#,
+        )
+        .bind(topic_name)
+        .bind(Json(properties))
+        .fetch_one(&mut *txn)
+        .await
+        .change_context_lazy(make_error)?;
 
         sqlx::query("INSERT INTO topic_offsets (topic_id, last_offset) VALUES ($1, 0)")
-            .bind(topic_id)
+            .bind(topic.topic_id)
             .execute(&mut *txn)
             .await
             .change_context_lazy(make_error)?;
@@ -50,34 +54,13 @@ impl PostgresMetaService {
         Ok(topic)
     }
 
-    pub async fn get_topics_by_id(&self, topic_id: uuid::Uuid) -> MetaResult<Topic> {
-        let make_error = || MetaError("failed to get all topics".to_string());
+    pub async fn get_topic_by_name(&self, topic_name: String) -> Result<Topic, MetaError> {
+        let make_error = || MetaError("failed to get topic by name".to_string());
         let pool = self.pool.clone();
 
-        sqlx::query_as("SELECT id, name, properties FROM topics WHERE id = $1")
-            .bind(topic_id)
-            .fetch_one(&pool)
-            .await
-            .change_context_lazy(make_error)
-    }
-
-    pub async fn get_topics_by_name(&self, topic_name: String) -> MetaResult<Topic> {
-        let make_error = || MetaError("failed to get all topics".to_string());
-        let pool = self.pool.clone();
-
-        sqlx::query_as("SELECT id, name, properties FROM topics WHERE name = $1")
+        sqlx::query_as("SELECT topic_id, topic_name, properties FROM topics WHERE topic_name = $1")
             .bind(&topic_name)
             .fetch_one(&pool)
-            .await
-            .change_context_lazy(make_error)
-    }
-
-    pub async fn get_all_topics(&self) -> MetaResult<Vec<Topic>> {
-        let make_error = || MetaError("failed to get all topics".to_string());
-        let pool = self.pool.clone();
-
-        sqlx::query_as("SELECT id, name, properties FROM topics")
-            .fetch_all(&pool)
             .await
             .change_context_lazy(make_error)
     }

@@ -13,8 +13,9 @@
 // limitations under the License.
 
 use error_stack::Result;
-use morax_protos::property::StorageProps;
+use morax_api::property::StorageProperty;
 use opendal::Operator;
+use uuid::Uuid;
 
 #[derive(Debug, thiserror::Error)]
 pub enum StorageError {
@@ -22,43 +23,53 @@ pub enum StorageError {
     OpenDAL(opendal::Error),
 }
 
+#[derive(Debug)]
 pub struct TopicStorage {
-    storage: StorageProps,
+    storage: StorageProperty,
 }
 
 impl TopicStorage {
-    pub fn new(storage: StorageProps) -> Self {
+    pub fn new(storage: StorageProperty) -> Self {
         Self { storage }
     }
 
-    pub async fn read_at(&self, topic_name: &str, split_id: &str) -> Result<Vec<u8>, StorageError> {
-        let op = self.op()?;
-        let split_url = format!("{topic_name}/{split_id}");
+    pub async fn read_split(&self, topic_id: i64, split_id: Uuid) -> Result<Vec<u8>, StorageError> {
+        let op = make_op(self.storage.clone())?;
+        let split_url = make_split_url(topic_id, split_id);
         let records = op.read(&split_url).await.map_err(StorageError::OpenDAL)?;
         Ok(records.to_vec())
     }
 
-    pub async fn write_to(
-        &self,
-        topic_name: &str,
-        records: Vec<u8>,
-    ) -> Result<String, StorageError> {
-        let op = self.op()?;
-        // TODO(tisonkun): whether use a sequential number rather than a UUID
-        let split_id = uuid::Uuid::new_v4();
-        let split_url = format!("{topic_name}/{split_id}");
-        op.write(&split_url, records)
+    pub async fn write_split(&self, topic_id: i64, split: Vec<u8>) -> Result<Uuid, StorageError> {
+        let op = make_op(self.storage.clone())?;
+        let split_id = Uuid::new_v4();
+        let split_url = make_split_url(topic_id, split_id);
+        op.write(&split_url, split)
             .await
             .map_err(StorageError::OpenDAL)?;
-        Ok(split_id.to_string())
+        Ok(split_id)
     }
+}
 
-    fn op(&self) -> Result<Operator, StorageError> {
-        match self.storage.clone() {
-            StorageProps::S3(config) => {
-                let builder = Operator::from_config(config).map_err(StorageError::OpenDAL)?;
-                Ok(builder.finish())
+pub fn make_op(storage: StorageProperty) -> Result<Operator, StorageError> {
+    match storage {
+        StorageProperty::S3(config) => {
+            let mut builder = opendal::services::S3::default()
+                .bucket(&config.bucket)
+                .region(&config.region)
+                .root(&config.prefix)
+                .endpoint(&config.endpoint)
+                .access_key_id(&config.access_key_id)
+                .secret_access_key(&config.secret_access_key);
+            if config.virtual_host_style {
+                builder = builder.enable_virtual_host_style();
             }
+            let builder = Operator::new(builder).map_err(StorageError::OpenDAL)?;
+            Ok(builder.finish())
         }
     }
+}
+
+fn make_split_url(topic_id: i64, split_id: Uuid) -> String {
+    format!("topic_{topic_id}/{split_id}.split")
 }

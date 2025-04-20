@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use backon::BackoffBuilder;
-use backon::Retryable;
 use error_stack::ResultExt;
-use morax_protos::request::AppendLogRequest;
-use morax_protos::request::AppendLogResponse;
-use morax_protos::request::CreateLogRequest;
-use morax_protos::request::CreateLogResponse;
-use morax_protos::request::ErrorResponse;
-use morax_protos::request::ReadLogRequest;
-use morax_protos::request::ReadLogResponse;
+use morax_api::request::AcknowledgeRequest;
+use morax_api::request::AcknowledgeResponse;
+use morax_api::request::CreateSubscriptionRequest;
+use morax_api::request::CreateSubscriptionResponse;
+use morax_api::request::CreateTopicRequest;
+use morax_api::request::CreateTopicResponse;
+use morax_api::request::PublishMessageRequest;
+use morax_api::request::PublishMessageResponse;
+use morax_api::request::PullMessageRequest;
+use morax_api::request::PullMessageResponse;
 use reqwest::Client;
 use reqwest::ClientBuilder;
 use reqwest::Response;
@@ -35,8 +36,16 @@ pub struct ClientError(String);
 #[derive(Debug, Clone)]
 pub enum HTTPResponse<T> {
     Success(T),
-    Failure(ErrorResponse),
     Error(ErrorStatus),
+}
+
+impl<T> HTTPResponse<T> {
+    pub fn into_success(self) -> Option<T> {
+        match self {
+            HTTPResponse::Success(t) => Some(t),
+            HTTPResponse::Error(_) => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -81,40 +90,16 @@ impl HTTPClient {
         })
     }
 
-    pub async fn health_check<B: BackoffBuilder>(
+    pub async fn create_topic(
         &self,
-        backoff: Option<B>,
-    ) -> error_stack::Result<(), ClientError> {
-        let url = format!("{}/v1/health", self.endpoint);
-        let make_error = || ClientError(format!("failed to health check: {url:?}"));
-
-        let health_check = || async {
-            self.client
-                .get(&url)
-                .send()
-                .await
-                .and_then(Response::error_for_status)
-        };
-
-        if let Some(backoff) = backoff {
-            health_check.retry(backoff).await
-        } else {
-            health_check().await
-        }
-        .change_context_lazy(make_error)?;
-
-        Ok(())
-    }
-
-    pub async fn create_log(
-        &self,
-        request: CreateLogRequest,
-    ) -> error_stack::Result<HTTPResponse<CreateLogResponse>, ClientError> {
-        let make_error = || ClientError(format!("failed to create log: {request:?}"));
+        topic_name: String,
+        request: CreateTopicRequest,
+    ) -> error_stack::Result<HTTPResponse<CreateTopicResponse>, ClientError> {
+        let make_error = || ClientError(format!("failed to create topic: {request:?}"));
 
         let response = self
             .client
-            .post(format!("{}/v1/create", self.endpoint))
+            .post(format!("{}/v1/topics/{topic_name}", self.endpoint))
             .json(&request)
             .send()
             .await
@@ -123,15 +108,16 @@ impl HTTPClient {
         make_response(response).await
     }
 
-    pub async fn append_log(
+    pub async fn publish(
         &self,
-        request: AppendLogRequest,
-    ) -> error_stack::Result<HTTPResponse<AppendLogResponse>, ClientError> {
-        let make_error = || ClientError(format!("failed to append log: {request:?}"));
+        topic_name: String,
+        request: PublishMessageRequest,
+    ) -> error_stack::Result<HTTPResponse<PublishMessageResponse>, ClientError> {
+        let make_error = || ClientError(format!("failed to publish messages: {request:?}"));
 
         let response = self
             .client
-            .post(format!("{}/v1/append", self.endpoint))
+            .post(format!("{}/v1/topics/{topic_name}/publish", self.endpoint))
             .json(&request)
             .send()
             .await
@@ -140,15 +126,61 @@ impl HTTPClient {
         make_response(response).await
     }
 
-    pub async fn read_log(
+    pub async fn create_subscription(
         &self,
-        request: ReadLogRequest,
-    ) -> error_stack::Result<HTTPResponse<ReadLogResponse>, ClientError> {
-        let make_error = || ClientError(format!("failed to read log: {request:?}"));
+        subscription_name: String,
+        request: CreateSubscriptionRequest,
+    ) -> error_stack::Result<HTTPResponse<CreateSubscriptionResponse>, ClientError> {
+        let make_error = || ClientError(format!("failed to create subscription: {request:?}"));
 
         let response = self
             .client
-            .post(format!("{}/v1/read", self.endpoint))
+            .post(format!(
+                "{}/v1/subscriptions/{subscription_name}",
+                self.endpoint
+            ))
+            .json(&request)
+            .send()
+            .await
+            .change_context_lazy(make_error)?;
+
+        make_response(response).await
+    }
+
+    pub async fn pull(
+        &self,
+        subscription_name: String,
+        request: PullMessageRequest,
+    ) -> error_stack::Result<HTTPResponse<PullMessageResponse>, ClientError> {
+        let make_error = || ClientError(format!("failed to pull messages: {request:?}"));
+
+        let response = self
+            .client
+            .post(format!(
+                "{}/v1/subscriptions/{subscription_name}/pull",
+                self.endpoint
+            ))
+            .json(&request)
+            .send()
+            .await
+            .change_context_lazy(make_error)?;
+
+        make_response(response).await
+    }
+
+    pub async fn acknowledge(
+        &self,
+        subscription_name: String,
+        request: AcknowledgeRequest,
+    ) -> error_stack::Result<HTTPResponse<AcknowledgeResponse>, ClientError> {
+        let make_error = || ClientError(format!("failed to acknowledge: {request:?}"));
+
+        let response = self
+            .client
+            .post(format!(
+                "{}/v1/subscriptions/{subscription_name}/acknowledge",
+                self.endpoint
+            ))
             .json(&request)
             .send()
             .await
@@ -171,10 +203,6 @@ async fn make_response<T: DeserializeOwned>(
     }
 
     let payload = r.bytes().await.change_context_lazy(make_error)?;
-    if let Ok(resp) = serde_json::from_slice::<ErrorResponse>(&payload) {
-        return Ok(HTTPResponse::Failure(resp));
-    }
-
     Ok(HTTPResponse::Error(ErrorStatus {
         code: status,
         payload: payload.to_vec(),

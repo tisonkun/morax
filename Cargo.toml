@@ -14,8 +14,6 @@
 
 [workspace]
 members = [
-  "api/protos",
-  "api/client",
   "cmd/morax",
   "crates/broker",
   "crates/meta",
@@ -24,6 +22,8 @@ members = [
   "crates/storage",
   "crates/telemetry",
   "crates/version",
+  "sdk/api",
+  "sdk/client",
   "tests/behavior",
   "tests/toolkit",
   "xtask",
@@ -36,10 +36,9 @@ edition = "2021"
 license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/tisonkun/morax/"
-version = "0.1.1"
+version = "0.0.1"
 
 [workspace.dependencies]
-backon = { version = "1.2", features = ["tokio-sleep"] }
 base64 = { version = "0.22" }
 better-panic = { version = "0.3" }
 build-data = { version = "0.2" }
@@ -47,18 +46,16 @@ clap = { version = "4.5", features = ["derive"] }
 const_format = { version = "0.2" }
 ctrlc = { version = "3.4" }
 error-stack = { version = "0.5" }
-fastimer = { version = "0.4", features = ["tokio-time", "logging"] }
-fastrace = { version = "0.7", features = ["enable"] }
-flexbuffers = { version = "24.12" }
-futures = { version = "0.3" }
-gix-discover = { version = "0.37" }
-insta = { version = "1.40", features = ["json"] }
+fastimer = { version = "0.9.0", features = ["logging"] }
+futures = { version = "0.3.31" }
+gix-discover = { version = "0.39.0" }
+insta = { version = "1.40", features = ["json", "redactions"] }
+jiff = { version = "0.2.9", features = ["serde"] }
 local-ip-address = { version = "0.6" }
 log = { version = "0.4", features = ["kv_unstable_serde", "serde"] }
-logforth = { version = "0.20" }
-mea = { version = "0.1" }
-mime = { version = "0.3" }
-opendal = { version = "0.51" }
+logforth = { version = "0.24.0" }
+mea = { version = "0.3.4" }
+opendal = { version = "0.53.1" }
 pin-project = { version = "1.1" }
 poem = { version = "3.1", features = ["compression", "rustls"] }
 regex = { version = "1.11" }
@@ -66,14 +63,13 @@ reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
 scopeguard = { version = "1.2" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0" }
-shadow-rs = { version = "0.37" }
+shadow-rs = { version = "1.1.1", default-features = false }
 sqlx = { version = "0.8", features = [
   "json",
   "postgres",
   "runtime-tokio-rustls",
   "uuid",
 ] }
-tempfile = { version = "3.13" }
 test-harness = { version = "0.3" }
 testcontainers = { version = "0.23", features = ["blocking"] }
 thiserror = { version = "2.0" }
@@ -84,53 +80,38 @@ uuid = { version = "1.11", features = ["v4"] }
 which = { version = "7.0" }
 
 # workspace dependencies
-morax-broker = { version = "0.1.1", path = "crates/broker" }
-morax-client = { version = "0.1.1", path = "api/client" }
-morax-meta = { version = "0.1.1", path = "crates/meta" }
-morax-protos = { version = "0.1.1", path = "api/protos" }
-morax-runtime = { version = "0.1.1", path = "crates/runtime" }
-morax-server = { version = "0.1.1", path = "crates/server" }
-morax-storage = { version = "0.1.1", path = "crates/storage" }
-morax-telemetry = { version = "0.1.1", path = "crates/telemetry" }
-morax-version = { version = "0.1.1", path = "crates/version" }
-tests-toolkit = { version = "0.1.1", path = "tests/toolkit" }
+morax-api = { version = "0.0.1", path = "sdk/api" }
+morax-broker = { version = "0.0.1", path = "crates/broker" }
+morax-client = { version = "0.0.1", path = "sdk/client" }
+morax-meta = { version = "0.0.1", path = "crates/meta" }
+morax-runtime = { version = "0.0.1", path = "crates/runtime" }
+morax-server = { version = "0.0.1", path = "crates/server" }
+morax-storage = { version = "0.0.1", path = "crates/storage" }
+morax-telemetry = { version = "0.0.1", path = "crates/telemetry" }
+morax-version = { version = "0.0.1", path = "crates/version" }
+tests-toolkit = { version = "0.0.1", path = "tests/toolkit" }
 
 [workspace.lints.rust]
 unknown_lints = "deny"
 unsafe_code = "deny"
+unused_must_use = "deny"
 
 [workspace.lints.clippy]
 dbg_macro = "deny"
+field_reassign_with_default = "allow"
+manual_range_contains = "allow"
+new_without_default = "allow"
 
-[workspace.metadata.release]
-pre-release-commit-message = "chore: release v{{version}}"
-shared-version = true
-sign-tag = true
-tag-name = "v{{version}}"
-
-# Config for 'cargo dist'
-[workspace.metadata.dist]
-# The preferred cargo-dist version to use in CI (Cargo.toml SemVer syntax)
-cargo-dist-version = "0.22.1"
-# CI backends to support
-ci = "github"
-# Path that installers should place binaries in
-install-path = "CARGO_HOME"
-# Whether to install an updater program
-install-updater = false
-# The installers to generate for each app
-installers = ["shell"]
-# Which actions to run on pull requests
-pr-run-mode = "plan"
-# Target platforms to build apps for (Rust target-triple syntax)
-targets = [
-  "aarch64-apple-darwin",
-  "x86_64-apple-darwin",
-  "x86_64-unknown-linux-gnu",
-  "x86_64-pc-windows-msvc",
-]
+[profile.release]
+debug = true
+lto = "thin"
 
 [profile.dist]
 codegen-units = 1
+debug = true
 inherits = "release"
 lto = "fat"
+
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3

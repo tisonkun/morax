@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use model::*;
+pub use object::*;
 pub use service::PostgresMetaService;
 
 mod bootstrap;
-mod model;
+mod object;
 mod service;
 
 #[derive(Debug, thiserror::Error)]

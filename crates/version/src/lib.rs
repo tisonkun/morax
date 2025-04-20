@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use shadow_rs::shadow;
+use serde::Deserialize;
+use serde::Serialize;
 
-shadow!(build);
+shadow_rs::shadow!(build);
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BuildInfo {
     pub branch: &'static str,
     pub commit: &'static str,

@@ -14,9 +14,7 @@
 
 [package]
 name = "morax-telemetry"
-publish = true
-
-description = "A telemetry component that collects metrics, logs, and traces for Morax itself"
+publish = false
 
 edition.workspace = true
 license.workspace = true
@@ -24,10 +22,12 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.release]
+release = false
+
 [dependencies]
-log = { workspace = true }
 logforth = { workspace = true }
-morax-protos = { workspace = true }
+morax-api = { workspace = true }
 
 [lints]
 workspace = true

@@ -14,9 +14,7 @@
 
 [package]
 name = "morax-broker"
-publish = true
-
-description = "The broker layer for Morax"
+publish = false
 
 edition.workspace = true
 license.workspace = true
@@ -24,18 +22,17 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.release]
+release = false
+
 [dependencies]
-base64 = { workspace = true }
 error-stack = { workspace = true }
-flexbuffers = { workspace = true }
+jiff = { workspace = true }
 log = { workspace = true }
-mime = { workspace = true }
+morax-api = { workspace = true }
 morax-meta = { workspace = true }
-morax-protos = { workspace = true }
-morax-runtime = { workspace = true }
 morax-storage = { workspace = true }
 poem = { workspace = true }
-serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 

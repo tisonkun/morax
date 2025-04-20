@@ -15,7 +15,7 @@
 use std::num::NonZeroUsize;
 use std::sync::OnceLock;
 
-use morax_protos::config::RuntimeOptions;
+use morax_api::config::RuntimeOptions;
 
 use crate::num_cpus;
 use crate::Builder;
@@ -47,7 +47,6 @@ pub fn test_runtime() -> &'static Runtime {
 #[derive(Debug)]
 struct GlobalRuntimes {
     server_runtime: Runtime,
-    exec_runtime: Runtime,
     io_runtime: Runtime,
 }
 
@@ -64,7 +63,6 @@ fn do_initialize_runtimes(opts: &RuntimeOptions) -> GlobalRuntimes {
 
     let RuntimeOptions {
         server_runtime_threads,
-        exec_runtime_threads,
         io_runtime_threads,
     } = opts;
 
@@ -75,13 +73,6 @@ fn do_initialize_runtimes(opts: &RuntimeOptions) -> GlobalRuntimes {
             .unwrap_or_else(default_server_threads)
             .get(),
     );
-    let exec_runtime = make_runtime(
-        "exec_runtime",
-        "exec_thread",
-        exec_runtime_threads
-            .unwrap_or_else(default_exec_threads)
-            .get(),
-    );
     let io_runtime = make_runtime(
         "io_runtime",
         "io_thread",
@@ -90,16 +81,11 @@ fn do_initialize_runtimes(opts: &RuntimeOptions) -> GlobalRuntimes {
 
     GlobalRuntimes {
         server_runtime,
-        exec_runtime,
         io_runtime,
     }
 }
 
 fn default_server_threads() -> NonZeroUsize {
-    NonZeroUsize::new(2).unwrap()
-}
-
-fn default_exec_threads() -> NonZeroUsize {
     num_cpus()
 }
 
@@ -125,10 +111,6 @@ pub fn server_runtime() -> &'static Runtime {
     &fetch_runtimes_or_default().server_runtime
 }
 
-pub fn exec_runtime() -> &'static Runtime {
-    &fetch_runtimes_or_default().exec_runtime
-}
-
 pub fn io_runtime() -> &'static Runtime {
     &fetch_runtimes_or_default().io_runtime
 }
@@ -142,16 +124,13 @@ mod tests {
         let handle = server_runtime().spawn(async { 1 + 1 });
         assert_eq!(2, server_runtime().block_on(handle));
 
-        let handle = exec_runtime().spawn(async { 2 + 2 });
-        assert_eq!(4, exec_runtime().block_on(handle));
-
         let handle = io_runtime().spawn(async { 4 + 4 });
         assert_eq!(8, io_runtime().block_on(handle));
     }
 
     #[test]
     fn test_spawn_from_blocking() {
-        let runtimes = [server_runtime(), exec_runtime(), io_runtime()];
+        let runtimes = [server_runtime(), io_runtime()];
 
         for runtime in runtimes {
             let out = runtime.block_on(async move {

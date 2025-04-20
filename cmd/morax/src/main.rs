@@ -15,7 +15,6 @@
 use clap::Parser;
 
 mod command;
-mod config;
 
 #[derive(Debug, thiserror::Error)]
 #[error("{0}")]

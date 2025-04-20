@@ -14,9 +14,7 @@
 
 [package]
 name = "morax-version"
-publish = true
-
-description = "A common build helper for Morax that generates the version information"
+publish = false
 
 edition.workspace = true
 license.workspace = true
@@ -24,14 +22,18 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.release]
+release = false
+
 [dependencies]
 const_format = { workspace = true }
+serde = { workspace = true }
 shadow-rs = { workspace = true }
 
 [build-dependencies]
 build-data = { workspace = true }
 gix-discover = { workspace = true }
-shadow-rs = { workspace = true }
+shadow-rs = { workspace = true, features = ["build"] }
 
 [lints]
 workspace = true

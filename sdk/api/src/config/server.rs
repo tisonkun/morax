@@ -15,14 +15,13 @@
 use serde::Deserialize;
 use serde::Serialize;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TopicProps {
-    pub storage: StorageProps,
-}
+use crate::config::BrokerConfig;
+use crate::config::MetaServiceConfig;
+use crate::property::StorageProperty;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "scheme")]
-pub enum StorageProps {
-    #[serde(rename = "s3")]
-    S3(opendal::services::S3Config),
+pub struct ServerConfig {
+    pub meta: MetaServiceConfig,
+    pub broker: BrokerConfig,
+    pub default_storage: StorageProperty,
 }

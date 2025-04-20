@@ -19,8 +19,8 @@ use error_stack::Result;
 use error_stack::ResultExt;
 use mea::latch::Latch;
 use mea::waitgroup::WaitGroup;
+use morax_api::config::ServerConfig;
 use morax_meta::PostgresMetaService;
-use morax_protos::config::ServerConfig;
 
 use crate::broker::bootstrap_broker;
 use crate::broker::BrokerBootstrapContext;
@@ -76,6 +76,7 @@ pub async fn start(config: ServerConfig) -> Result<ServerState, ServerError> {
     // initialize broker
     let (broker_advertise_addr, broker_fut) = bootstrap_broker(BrokerBootstrapContext {
         config: config.broker,
+        default_storage: config.default_storage,
         meta_service: meta_service.clone(),
         wg: wg.clone(),
         shutdown: shutdown.clone(),

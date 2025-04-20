@@ -12,42 +12,61 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use morax_protos::property::TopicProps;
+use morax_api::property::TopicProperty;
 use sqlx::types::Json;
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct CreateTopicRequest {
     pub name: String,
-    pub properties: TopicProps,
-}
-
-#[derive(Debug, Clone)]
-pub struct CommitRecordBatchesRequest {
-    pub topic_name: String,
-    pub record_len: i32,
-    pub split_id: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct FetchRecordBatchesRequest {
-    pub topic_id: Uuid,
-    pub topic_name: String,
-    pub offset: i64,
-}
-
-#[derive(Debug, Clone, sqlx::FromRow)]
-pub struct TopicSplit {
-    pub topic_id: Uuid,
-    pub topic_name: String,
-    pub start_offset: i64,
-    pub end_offset: i64,
-    pub split_id: String,
+    pub properties: TopicProperty,
 }
 
 #[derive(Debug, Clone, sqlx::FromRow)]
 pub struct Topic {
-    pub id: Uuid,
+    pub topic_id: i64,
+    pub topic_name: String,
+    pub properties: Json<TopicProperty>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CreateSubscriptionRequest {
     pub name: String,
-    pub properties: Json<TopicProps>,
+    pub topic: String,
+}
+
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct Subscription {
+    pub subscription_id: i64,
+    pub subscription_name: String,
+    pub topic_id: i64,
+    pub topic_name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct CommitTopicSplitRequest {
+    pub topic_id: i64,
+    pub split_id: Uuid,
+    pub count: i64,
+}
+
+#[derive(Debug, Clone)]
+pub struct AcknowledgeRequest {
+    pub subscription_id: i64,
+    pub ack_ids: Vec<i64>,
+}
+
+#[derive(Debug, Clone)]
+pub struct FetchTopicSplitRequest {
+    pub topic_id: i64,
+    pub start_offset: i64,
+    pub end_offset: i64,
+}
+
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct TopicSplit {
+    pub topic_id: i64,
+    pub start_offset: i64,
+    pub end_offset: i64,
+    pub split_id: Uuid,
 }

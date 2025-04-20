@@ -15,15 +15,15 @@
 use std::future::Future;
 use std::process::ExitCode;
 
-use morax_protos::config::LogConfig;
-use morax_protos::config::StderrAppenderConfig;
-use morax_protos::config::TelemetryConfig;
-use morax_protos::property::TopicProps;
+use morax_api::config::LogsConfig;
+use morax_api::config::StderrAppenderConfig;
+use morax_api::config::TelemetryConfig;
+use morax_api::property::TopicProperty;
 use tests_toolkit::make_test_name;
 
 pub struct Testkit {
     pub client: morax_client::HTTPClient,
-    pub topic_props: TopicProps,
+    pub topic_props: TopicProperty,
 }
 
 pub fn harness<T, Fut>(test: impl Send + FnOnce(Testkit) -> Fut) -> ExitCode
@@ -32,9 +32,9 @@ where
     Fut: Send + Future<Output = T>,
 {
     morax_telemetry::init(&TelemetryConfig {
-        log: LogConfig {
+        logs: LogsConfig {
             stderr: Some(StderrAppenderConfig {
-                filter: "INFO".to_string(),
+                filter: "DEBUG".to_string(),
             }),
         },
     });
@@ -51,7 +51,7 @@ where
 
         let exit_code = test(Testkit {
             client,
-            topic_props: TopicProps {
+            topic_props: TopicProperty {
                 storage: state.env_props.storage,
             },
         })

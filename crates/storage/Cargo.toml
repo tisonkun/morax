@@ -14,9 +14,7 @@
 
 [package]
 name = "morax-storage"
-publish = true
-
-description = "The Storage Service for Morax that interacts with the different object storage backends"
+publish = false
 
 edition.workspace = true
 license.workspace = true
@@ -24,9 +22,12 @@ readme.workspace = true
 repository.workspace = true
 version.workspace = true
 
+[package.metadata.release]
+release = false
+
 [dependencies]
 error-stack = { workspace = true }
-morax-protos = { workspace = true }
+morax-api = { workspace = true }
 opendal = { workspace = true, features = ["services-s3"] }
 thiserror = { workspace = true }
 uuid = { workspace = true }
