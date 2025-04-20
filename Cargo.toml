@@ -102,6 +102,12 @@ field_reassign_with_default = "allow"
 manual_range_contains = "allow"
 new_without_default = "allow"
 
+[workspace.metadata.release]
+pre-release-commit-message = "chore: release v{{version}}"
+shared-version = true
+sign-tag = true
+tag-name = "v{{version}}"
+
 [profile.release]
 debug = true
 lto = "thin"
