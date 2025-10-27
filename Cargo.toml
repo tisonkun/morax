@@ -71,7 +71,10 @@ sqlx = { version = "0.8", features = [
   "uuid",
 ] }
 test-harness = { version = "0.3" }
-testcontainers = { version = "0.23", features = ["blocking"] }
+testcontainers = { git = "https://github.com/the-wondersmith/testcontainers-rs.git", branch = "fix/reusable-containers", features = [
+  "blocking",
+  "reusable-containers",
+] }
 thiserror = { version = "2.0" }
 tokio = { version = "1.41", features = ["full"] }
 toml = { version = "0.8" }

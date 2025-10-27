@@ -21,7 +21,7 @@ use morax_api::property::StorageProperty;
 use testcontainers::core::ContainerPort;
 use testcontainers::core::WaitFor;
 use testcontainers::runners::SyncRunner;
-use testcontainers::Container;
+use testcontainers::{Container, ImageExt, ReuseDirective};
 use testcontainers::Image;
 use testcontainers::TestcontainersError;
 
@@ -142,8 +142,16 @@ fn maybe_docker_error(err: TestcontainersError) -> TestcontainersError {
 }
 
 pub(crate) fn make_testcontainers_env_props() -> (TestEnvProps, Vec<DropGuard>) {
-    let postgres = Postgres.start().map_err(maybe_docker_error).unwrap();
-    let minio = MinIO.start().map_err(maybe_docker_error).unwrap();
+    let postgres = Postgres
+        .with_reuse(ReuseDirective::Always)
+        .start()
+        .map_err(maybe_docker_error)
+        .unwrap();
+    let minio = MinIO
+        .with_reuse(ReuseDirective::Always)
+        .start()
+        .map_err(maybe_docker_error)
+        .unwrap();
     let props = TestEnvProps {
         meta: make_meta_service_config(&postgres),
         storage: make_s3_props(&minio),
